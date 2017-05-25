@@ -13,12 +13,12 @@
 		{
 			Console.WriteLine(table.Code);
 			Console.Write("\t");
-			foreach (var x in table.Axes.Single(a => a.Direction == Direction.X).Ordinates.OrderBy(a => a.Order))
+			foreach (var x in table.Axes.Single(a => a.Direction == Direction.X).Ordinates.OrderBy(a => a.Code))
 			{
 				Console.Write(x.Code + "\t");
 			}
 			Console.WriteLine();
-			foreach (var y in table.Axes.Single(a => a.Direction == Direction.Y).Ordinates.OrderBy(a => a.Order))
+			foreach (var y in table.Axes.Single(a => a.Direction == Direction.Y).Ordinates.OrderBy(a => a.Code))
 			{
 				Console.WriteLine(y.Code);
 			}
@@ -30,32 +30,8 @@
 
 			string labFileName = $"{code}-lab-codes.xml";
 
-			var labels = new Collection<Label>();
-			var lab = new XmlDocument();
-			lab.Load(Path.Combine(tableDirectoryPath, labFileName));
-			var labNs = new XmlNamespaceManager(lab.NameTable);
-			labNs.AddNamespace("link", "http://www.xbrl.org/2003/linkbase");
-			labNs.AddNamespace("xlink", "http://www.w3.org/1999/xlink");
-			var locators = lab.SelectNodes(".//link:loc", labNs);
-			foreach (XmlElement locator in locators)
-			{
-				//<link:loc xlink:type="locator" xlink:href="p_01.01-rend.xml#eba_tP_01.01" xlink:label="loc_eba_tP_01.01" />
-				var href = locator.GetAttribute("xlink:href").Split('#').Last();
-				var locatorId = locator.GetAttribute("xlink:label");
-				//    <gen:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label" xlink:from="loc_eba_tP_01.01" xlink:to="label_eba_tP_01.01" />
-				var arcs = lab.SelectNodes($".//node()[@xlink:from='{locatorId}']", labNs);
-				foreach (XmlElement arc in arcs)
-				{
-					var labelId = arc.GetAttribute("xlink:to");
-					var labelElement = (XmlElement)lab.SelectSingleNode($".//node()[@xlink:label='{labelId}']", labNs);
-					var type = labelElement.GetAttribute("xlink:role").Split('/').Last();
-					var value = labelElement.InnerText;
-					var language = labelElement.GetAttribute("xml:lang");
-					var label = new Label(href, type, language, value);
-					//    <label:label xlink:type="resource" xlink:label="label_eba_tP_01.01" xml:lang="en" xlink:role="http://www.eurofiling.info/xbrl/role/rc-code">P 01.01</label:label>
-					labels.Add(label);
-				}
-			}
+			var labelFilePath = Path.Combine(tableDirectoryPath, labFileName);
+			var labels = ParseLabels(labelFilePath);
 
 			string rendFilename = $"{code}-rend.xml";
 			var rendFilePath = Path.Combine(tableDirectoryPath, rendFilename);
@@ -101,14 +77,11 @@
 
 					if (ruleNode.GetAttribute("abstract") == "true")
 					{
-						var subs = rend.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{id}']", rendNs);
-						foreach (XmlElement sub in subs)
+						var subOrdinates = SubOrdinates(rend, id, rendNs, labels);
+
+						foreach (var subOrdinate in subOrdinates)
 						{
-							id = sub.GetAttribute("xlink:to");
-							o = int.Parse(sub.GetAttribute("order"));
-							var ordinateCode = labels.Where(l => l.Id == id).First(l => l.Type == "rc-code").Value;
-							ordinate = new Ordinate(id, ordinateCode, o);
-							axis.Ordinates.Add(ordinate);
+							axis.Ordinates.Add(subOrdinate);
 						}
 					}
 					else
@@ -123,6 +96,57 @@
 				table.Axes.Add(axis);
 			}
 			return table;
+		}
+
+		public static OrdinateCollection SubOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels)
+		{
+			var result = new OrdinateCollection();
+			var items = doc.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{id}']", ns);
+			foreach (XmlElement item in items)
+			{
+				id = item.GetAttribute("xlink:to");
+				var order = int.Parse(item.GetAttribute("order"));
+				var ordinateCode = labels.Where(l => l.Id == id).First(l => l.Type == "rc-code").Value;
+				var ordinate = new Ordinate(id, ordinateCode, order);
+				result.Add(ordinate);
+				var subItems = SubOrdinates(doc, id, ns, labels);
+				foreach (var subItem in subItems)
+				{
+					result.Add(subItem);
+				}
+			}
+			return result;
+		}
+
+		public static Collection<Label> ParseLabels(string path)
+		{
+			var labels = new Collection<Label>();
+			var lab = new XmlDocument();
+			lab.Load(path);
+			var labNs = new XmlNamespaceManager(lab.NameTable);
+			labNs.AddNamespace("link", "http://www.xbrl.org/2003/linkbase");
+			labNs.AddNamespace("xlink", "http://www.w3.org/1999/xlink");
+			var locators = lab.SelectNodes(".//link:loc", labNs);
+			foreach (XmlElement locator in locators)
+			{
+				//<link:loc xlink:type="locator" xlink:href="p_01.01-rend.xml#eba_tP_01.01" xlink:label="loc_eba_tP_01.01" />
+				var href = locator.GetAttribute("xlink:href").Split('#').Last();
+				var locatorId = locator.GetAttribute("xlink:label");
+				//    <gen:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label" xlink:from="loc_eba_tP_01.01" xlink:to="label_eba_tP_01.01" />
+				var arcs = lab.SelectNodes($".//node()[@xlink:from='{locatorId}']", labNs);
+				foreach (XmlElement arc in arcs)
+				{
+					var labelId = arc.GetAttribute("xlink:to");
+					var labelElement = (XmlElement)lab.SelectSingleNode($".//node()[@xlink:label='{labelId}']", labNs);
+					var type = labelElement.GetAttribute("xlink:role").Split('/').Last();
+					var value = labelElement.InnerText;
+					var language = labelElement.GetAttribute("xml:lang");
+					var label = new Label(href, type, language, value);
+					//    <label:label xlink:type="resource" xlink:label="label_eba_tP_01.01" xml:lang="en" xlink:role="http://www.eurofiling.info/xbrl/role/rc-code">P 01.01</label:label>
+					labels.Add(label);
+				}
+			}
+			return labels;
 		}
 	}
 }
