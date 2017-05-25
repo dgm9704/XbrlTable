@@ -1,0 +1,23 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XbrlTable", "XbrlTable\XbrlTable.csproj", "{4C90CB44-58AB-4775-A82D-0B3FACA442FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XbrlTable.Tests", "XbrlTable.Tests\XbrlTable.Tests.csproj", "{FB2DD424-C3B5-43E6-902C-3F128A979294}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C90CB44-58AB-4775-A82D-0B3FACA442FF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4C90CB44-58AB-4775-A82D-0B3FACA442FF}.Debug|x86.Build.0 = Debug|Any CPU
+		{4C90CB44-58AB-4775-A82D-0B3FACA442FF}.Release|x86.ActiveCfg = Release|Any CPU
+		{4C90CB44-58AB-4775-A82D-0B3FACA442FF}.Release|x86.Build.0 = Release|Any CPU
+		{FB2DD424-C3B5-43E6-902C-3F128A979294}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FB2DD424-C3B5-43E6-902C-3F128A979294}.Debug|x86.Build.0 = Debug|Any CPU
+		{FB2DD424-C3B5-43E6-902C-3F128A979294}.Release|x86.ActiveCfg = Release|Any CPU
+		{FB2DD424-C3B5-43E6-902C-3F128A979294}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
