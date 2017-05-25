@@ -1,5 +1,5 @@
-/home/john/Projects/XbrlTable/XbrlTable/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
-/home/john/Projects/XbrlTable/XbrlTable/bin/Debug/XbrlTable.dll.mdb
-/home/john/Projects/XbrlTable/XbrlTable/bin/Debug/XbrlTable.dll
-/home/john/Projects/XbrlTable/XbrlTable/obj/Debug/XbrlTable.dll
-/home/john/Projects/XbrlTable/XbrlTable/obj/Debug/XbrlTable.dll.mdb
+/home/john/code/XbrlTable/XbrlTable/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/home/john/code/XbrlTable/XbrlTable/bin/Debug/XbrlTable.dll.mdb
+/home/john/code/XbrlTable/XbrlTable/bin/Debug/XbrlTable.dll
+/home/john/code/XbrlTable/XbrlTable/obj/Debug/XbrlTable.dll
+/home/john/code/XbrlTable/XbrlTable/obj/Debug/XbrlTable.dll.mdb

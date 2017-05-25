@@ -1,8 +1,8 @@
-/home/john/Projects/XbrlTable/XbrlTable.Tests/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
-/home/john/Projects/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.Tests.dll.mdb
-/home/john/Projects/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.Tests.dll
-/home/john/Projects/XbrlTable/XbrlTable.Tests/obj/Debug/XbrlTable.Tests.dll
-/home/john/Projects/XbrlTable/XbrlTable.Tests/obj/Debug/XbrlTable.Tests.dll.mdb
-/home/john/Projects/XbrlTable/XbrlTable.Tests/bin/Debug/nunit.framework.dll
-/home/john/Projects/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.dll
-/home/john/Projects/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.dll.mdb
+/home/john/code/XbrlTable/XbrlTable.Tests/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/home/john/code/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.Tests.dll.mdb
+/home/john/code/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.Tests.dll
+/home/john/code/XbrlTable/XbrlTable.Tests/obj/Debug/XbrlTable.Tests.dll
+/home/john/code/XbrlTable/XbrlTable.Tests/obj/Debug/XbrlTable.Tests.dll.mdb
+/home/john/code/XbrlTable/XbrlTable.Tests/bin/Debug/nunit.framework.dll
+/home/john/code/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.dll
+/home/john/code/XbrlTable/XbrlTable.Tests/bin/Debug/XbrlTable.dll.mdb

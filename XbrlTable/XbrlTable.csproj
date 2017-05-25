@@ -40,6 +40,7 @@
     <Compile Include="Axis.cs" />
     <Compile Include="AxisCollection.cs" />
     <Compile Include="Table.cs" />
+    <Compile Include="Label.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
