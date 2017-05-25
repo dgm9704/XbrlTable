@@ -29,10 +29,6 @@
 			string rendFilename = $"{code}-rend.xml";
 			var rendFilePath = Path.Combine(tableDirectoryPath, rendFilename);
 
-			////var rend = XDocument.Load(rendFilePath);
-			////var axes = rend.Descendants().Where(e => e.Name.LocalName == "tableBreakdownArc");
-			////Console.WriteLine(string.Join("\n", axes.OrderBy(a => a.Attributes().First(att => att.Name == "order").Value).Select(a => a.Attributes().First(att => att.Name == "axis").Value)));
-
 			var rend = new XmlDocument();
 			rend.Load(rendFilePath);
 			var ns = new XmlNamespaceManager(rend.NameTable);

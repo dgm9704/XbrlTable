@@ -1,23 +1,17 @@
 ﻿<Properties StartupConfiguration="{FB2DD424-C3B5-43E6-902C-3F128A979294}|Unit Tests">
-  <MonoDevelop.Ide.Workbench ActiveDocument="XbrlTable/Parsing.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="XbrlTable Status">
     <Files>
-      <File FileName="XbrlTable/Parsing.cs" Line="3" Column="15" />
+      <File FileName="XbrlTable/Parsing.cs" Line="35" Column="59" />
       <File FileName="XbrlTable.Tests/Test.cs" Line="15" Column="9" />
+      <File FileName="XbrlTable Status" />
     </Files>
-    <Pads>
-      <Pad Id="MonoDevelop.UnitTesting.TestPad">
-        <State name="__root__">
-          <Node name="XbrlTable" expanded="True" selected="True" />
-        </State>
-      </Pad>
-    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
-      <Breakpoint file="/home/john/Projects/XbrlTable/XbrlTable/Program.cs" relfile="XbrlTable/Program.cs" line="11" column="4" />
-      <Breakpoint file="/home/john/Projects/XbrlTable/XbrlTable/Parsing.cs" relfile="XbrlTable/Parsing.cs" line="96" column="1" />
-      <Breakpoint file="/home/john/Projects/XbrlTable/XbrlTable/Parsing.cs" relfile="XbrlTable/Parsing.cs" line="77" column="1" />
+      <Breakpoint file="/home/john/code/XbrlTable/XbrlTable/Program.cs" relfile="XbrlTable/Program.cs" line="11" column="4" />
+      <Breakpoint file="/home/john/code/XbrlTable/XbrlTable/Parsing.cs" relfile="XbrlTable/Parsing.cs" line="92" column="1" />
+      <Breakpoint file="/home/john/code/XbrlTable/XbrlTable/Parsing.cs" relfile="XbrlTable/Parsing.cs" line="73" column="1" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
