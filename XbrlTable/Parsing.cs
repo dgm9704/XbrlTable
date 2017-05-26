@@ -12,7 +12,21 @@
 		public static void DumpTable(Table table)
 		{
 			Console.WriteLine(table.Code);
-			Console.Write("\t");
+
+			var zAxes = table.Axes.Where(a => a.Direction == Direction.Z);
+			if (zAxes.Any())
+			{
+				Console.Write("Z\t");
+				foreach (var zAxis in zAxes.OrderBy(a => a.Order))
+				{
+					foreach (var z in zAxis.Ordinates)
+					{
+						Console.WriteLine($"\t{z.Code}");
+					}
+				}
+			}
+
+			Console.Write("Y \\ X\t");
 			foreach (var x in table.Axes.Single(a => a.Direction == Direction.X).Ordinates.OrderBy(a => a.Code))
 			{
 				Console.Write(x.Code + "\t");
@@ -55,8 +69,9 @@
 				var order = int.Parse(tableBreakDownArc.GetAttribute("order"));
 				var direction = (Direction)Enum.Parse(typeof(Direction), tableBreakDownArc.GetAttribute("axis"), true);
 				var axis = new Axis(order, direction);
+				var axisId = tableBreakDownArc.GetAttribute("xlink:to");
 
-				var breakdownTreeArc = rend.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{tableBreakDownArc.GetAttribute("xlink:to")}']", rendNs);
+				var breakdownTreeArc = (XmlElement)rend.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", rendNs);
 				var ruleNodeId = breakdownTreeArc.Attributes["xlink:to"].Value;
 
 				//var ruleNode = rend.SelectSingleNode($".//table:ruleNode[@id='{ruleNodeId}']", ns);
@@ -91,9 +106,36 @@
 						axis.Ordinates.Add(ordinate);
 					}
 				}
+				var aspectNodes = rend.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", rendNs);
+				foreach (XmlElement aspectNode in aspectNodes)
+				{
+					if (direction == Direction.Y)
+					{
+						if (table.Axes.Any(a => a.Direction == Direction.X))
+						{
+							axis = table.Axes.First(a => a.Direction == Direction.X);
+							var yAxis = new Axis(0, Direction.Y);
+							var yOrdinate = new Ordinate("", "999", 0);
+							yAxis.Ordinates.Add(yOrdinate);
+							table.Axes.Add(yAxis);
+						}
+						else
+						{
+							axis = new Axis(order, Direction.X);
+							table.Axes.Add(axis);
+						}
 
-
-				table.Axes.Add(axis);
+					}
+					var o = int.Parse(breakdownTreeArc.GetAttribute("order"));
+					var aspectId = aspectNode.GetAttribute("id");
+					var zLabel = labels.First(l => l.Id == axisId).Value;
+					var ordinate = new Ordinate(aspectId, zLabel, o);
+					axis.Ordinates.Add(ordinate);
+				}
+				if (!table.Axes.Any(a => a.Direction == axis.Direction))
+				{
+					table.Axes.Add(axis);
+				}
 			}
 			return table;
 		}
