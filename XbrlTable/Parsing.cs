@@ -19,15 +19,15 @@
 			string rendFilename = $"{code}-rend.xml";
 			var rendFilePath = Path.Combine(tableDirectoryPath, rendFilename);
 
-			var rend = new XmlDocument();
-			rend.Load(rendFilePath);
-			var ns = CreateNameSpaceManager(rend);
+			var doc = new XmlDocument();
+			doc.Load(rendFilePath);
+			var ns = CreateNameSpaceManager(doc);
 
 
-			var tableElement = rend.SelectSingleNode(".//table:table", ns);
+			var tableElement = doc.SelectSingleNode(".//table:table", ns);
 
 			var tableId = tableElement.Attributes["id"].Value;
-			var tableBreakDownArcs = rend.SelectNodes($".//table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
+			var tableBreakDownArcs = doc.SelectNodes($".//table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
 			var tableCode = labels.Where(l => l.Id == tableId).First(l => l.Type == "rc-code").Value;
 			var table = new Table(tableId, tableCode);
 
@@ -41,21 +41,31 @@
 
 				var axisId = tableBreakDownArc.GetAttribute("xlink:to");
 
-				var breakdownTreeArc = (XmlElement)rend.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", ns);
+				var breakdownTreeArc = (XmlElement)doc.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", ns);
 				var ruleNodeId = breakdownTreeArc.Attributes["xlink:to"].Value;
 
 				// normal axis ordinates
-				var definitionNodeSubtreeArcs = rend.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{ruleNodeId}']", ns);
+				var definitionNodeSubtreeArcs = doc.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{ruleNodeId}']", ns);
 				foreach (XmlElement definitionNodeSubtreeArc in definitionNodeSubtreeArcs)
 				{
 					Ordinate ordinate;
+					string member = "";
 					var path = int.Parse(definitionNodeSubtreeArc.GetAttribute("order")).ToString("000");
 
 					// New axis ordinate
 					var id = definitionNodeSubtreeArc.GetAttribute("xlink:to");
-					//var ruleNode = (XmlElement)rend.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
+					var ruleNode = (XmlElement)doc.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
 
-					var subOrdinates = SubOrdinates(rend, id, ns, labels, path);
+					if (ruleNode != null)
+					{
+						var metricNode = ruleNode.SelectSingleNode("formula:concept/formula:qname", ns);
+						if (metricNode != null)
+						{
+							member = metricNode.InnerText;
+						}
+					}
+
+					var subOrdinates = SubOrdinates(doc, id, ns, labels, path);
 
 					foreach (var subOrdinate in subOrdinates)
 					{
@@ -66,13 +76,13 @@
 					var ordinateCode = ordinateLabel.Value;
 					if (!string.IsNullOrEmpty(ordinateCode))
 					{
-						ordinate = new Ordinate(id, ordinateCode, path, "");
+						ordinate = new Ordinate(id, ordinateCode, path, member);
 						ordinates.Add(ordinate);
 					}
 				}
 
 				// key values
-				var aspectNodes = rend.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", ns);
+				var aspectNodes = doc.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", ns);
 				var openAxis = aspectNodes.Count > 0;
 
 				foreach (XmlElement aspectNode in aspectNodes)
@@ -120,11 +130,25 @@
 				var order = int.Parse(item.GetAttribute("order")).ToString("000");
 				var path = $"{currentPath}.{order}";
 				var ordinateCode = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code").Value;
+				var member = "";
+				var ruleNode = (XmlElement)doc.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
+
+				if (ruleNode != null)
+				{
+					var metricNode = ruleNode.SelectSingleNode("formula:concept/formula:qname", ns);
+					if (metricNode != null)
+					{
+						member = metricNode.InnerText;
+					}
+				}
+
 				if (!string.IsNullOrEmpty(ordinateCode))
 				{
-					var ordinate = new Ordinate(id, ordinateCode, path, "");
+					var ordinate = new Ordinate(id, ordinateCode, path, member);
 					result.Add(ordinate);
 				}
+
+
 				var subItems = SubOrdinates(doc, id, ns, labels, path);
 				foreach (var subItem in subItems)
 				{

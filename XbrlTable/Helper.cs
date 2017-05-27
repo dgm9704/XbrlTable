@@ -19,20 +19,37 @@
 
 		public static void DumpTable(Table table)
 		{
-			if (table.Axes.Any(a => a.Direction == Direction.Z))
+
+			foreach (var axis in table.Axes.Where(a => a.IsOpen))
 			{
-				foreach (var axis in table.Axes.Where(a => a.IsOpen))
-				{
-					Console.Write($"{axis.Direction}\t");
-					Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Member}").Join("\t")); ;
-				}
-
-				Console.Write("Y \\ X\t");
-
-				Console.WriteLine(table.Axes.First(a => a.Direction == Direction.X).Ordinates.OrderBy(o => o.Path).Select(o => o.Code).Join("\t"));
-
-				Console.WriteLine(table.Axes.First(a => a.Direction == Direction.Y).Ordinates.OrderBy(o => o.Path).Select(o => o.Code).Join("\n"));
+				Console.Write($"{axis.Direction}\t");
+				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Member.Split(':').Last()}").Join("\t")); ;
 			}
+
+			Console.Write("Y \\ X\t");
+
+			var xAxis = table.Axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.X);
+			var xOrdinates = xAxis.Ordinates.OrderBy(o => o.Path);
+			Console.WriteLine(xOrdinates.Select(o => o.Code).Join("\t"));
+
+			var yAxis = table.Axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.Y);
+
+			var yOrdinates = (yAxis.Ordinates ?? new OrdinateCollection()).OrderBy(o => o.Path).ToList();
+
+			if (!yOrdinates.Any())
+			{
+				yOrdinates = new List<Ordinate>() { new Ordinate("", "999", "0", "") };
+
+			}
+			foreach (var y in yOrdinates)
+			{
+				Console.Write($"{y.Code}\t");
+				Console.WriteLine(xOrdinates.Select(x => $"{x.Member.Split(':').Last()}{y.Member.Split(':').Last()}").Join("\t"));
+			}
+
+			//Console.WriteLine(table.Axes.First(a => a.Direction == Direction.X).Ordinates.OrderBy(o => o.Path).Select(o => o.Member).Join("\t"));
+
+			//Console.WriteLine(table.Axes.First(a => a.Direction == Direction.Y).Ordinates.OrderBy(o => o.Path).Select(o => o.Code).Join("\n"));
 		}
 
 		public static string Join(this IEnumerable<string> values, string separator) => string.Join(separator, values);
