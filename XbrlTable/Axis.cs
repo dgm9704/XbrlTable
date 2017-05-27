@@ -4,13 +4,15 @@
 	{
 		public int Order { get; }
 		public Direction Direction { get; }
+		public bool IsOpen { get; }
 		public OrdinateCollection Ordinates { get; }
 
-		public Axis(int order, Direction direction)
+		public Axis(int order, Direction direction, bool open, OrdinateCollection ordinates)
 		{
 			Order = order;
 			Direction = direction;
-			Ordinates = new OrdinateCollection();
+			IsOpen = open;
+			Ordinates = ordinates;
 		}
 	}
 }

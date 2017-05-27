@@ -156,10 +156,24 @@
 		}
 
 		[Test]
+		public void S_16_01_01_02_Content()
+		{
+			var table = Parsing.ParseTable(Directory, "s.16.01.01.02");
+			Helper.DumpTable(table);
+		}
+
+		[Test]
 		public void S_22_06_01_04()
 		{
 			var table = Parsing.ParseTable(Directory, "s.22.06.01.04");
 			Helper.DumpAxes(table);
+		}
+
+		[Test]
+		public void S_22_06_01_04_Content()
+		{
+			var table = Parsing.ParseTable(Directory, "s.22.06.01.04");
+			Helper.DumpTable(table);
 		}
 	}
 }

@@ -36,7 +36,9 @@
 				// new axis
 				var order = int.Parse(tableBreakDownArc.GetAttribute("order"));
 				var direction = (Direction)Enum.Parse(typeof(Direction), tableBreakDownArc.GetAttribute("axis"), true);
-				var axis = new Axis(order, direction);
+
+				var ordinates = new OrdinateCollection();
+
 				var axisId = tableBreakDownArc.GetAttribute("xlink:to");
 
 				var breakdownTreeArc = (XmlElement)rend.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", ns);
@@ -57,32 +59,39 @@
 
 					foreach (var subOrdinate in subOrdinates)
 					{
-						axis.Ordinates.Add(subOrdinate);
+						ordinates.Add(subOrdinate);
 					}
 
 					var ordinateLabel = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code");
 					var ordinateCode = ordinateLabel.Value;
 					if (!string.IsNullOrEmpty(ordinateCode))
 					{
-						ordinate = new Ordinate(id, ordinateCode, path);
-						axis.Ordinates.Add(ordinate);
+						ordinate = new Ordinate(id, ordinateCode, path, "");
+						ordinates.Add(ordinate);
 					}
 				}
 
 				// key values
 				var aspectNodes = rend.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", ns);
+				var openAxis = aspectNodes.Count > 0;
+
 				foreach (XmlElement aspectNode in aspectNodes)
 				{
 					var path = breakdownTreeArc.GetAttribute("order");
 					var aspectId = aspectNode.GetAttribute("id");
 					var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
-					var ordinateLabel = labelItem.Value + "*";
+					var ordinateCode = labelItem.Value + "*";
+					var dimensionNode = aspectNode.SelectSingleNode("table:dimensionAspect", ns);
+					var member = dimensionNode.InnerText;
+					var ordinate = new Ordinate(aspectId, ordinateCode, path, member);
 
-					var ordinate = new Ordinate(aspectId, ordinateLabel, path);
-					axis.Ordinates.Add(ordinate);
+					ordinates.Add(ordinate);
 				}
-
-				table.Axes.Add(axis);
+				if (ordinates.Any())
+				{
+					var axis = new Axis(order, direction, openAxis, ordinates);
+					table.Axes.Add(axis);
+				}
 			}
 			return table;
 		}
@@ -113,7 +122,7 @@
 				var ordinateCode = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code").Value;
 				if (!string.IsNullOrEmpty(ordinateCode))
 				{
-					var ordinate = new Ordinate(id, ordinateCode, path);
+					var ordinate = new Ordinate(id, ordinateCode, path, "");
 					result.Add(ordinate);
 				}
 				var subItems = SubOrdinates(doc, id, ns, labels, path);
