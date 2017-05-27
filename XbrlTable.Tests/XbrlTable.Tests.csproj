@@ -31,7 +31,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Test.cs" />
+    <Compile Include="FP.cs" />
+    <Compile Include="SBP.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XbrlTable\XbrlTable.csproj">

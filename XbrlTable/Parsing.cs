@@ -5,6 +5,7 @@
 	using System.IO;
 	using System.Linq;
 	using System.Xml;
+	using System.Xml.XPath;
 
 	public static class Parsing
 	{
@@ -16,14 +17,15 @@
 			var zAxes = table.Axes.Where(a => a.Direction == Direction.Z);
 			if (zAxes.Any())
 			{
-				Console.Write("Z\t");
+				Console.Write("Z");
 				foreach (var zAxis in zAxes.OrderBy(a => a.Order))
 				{
 					foreach (var z in zAxis.Ordinates)
 					{
-						Console.WriteLine($"\t{z.Code}");
+						Console.Write($"\t{z.Code}");
 					}
 				}
+				Console.WriteLine();
 			}
 
 			Console.Write("Y \\ X\t");
@@ -38,9 +40,9 @@
 			}
 		}
 
-		public static Table ParseTable(string code)
+		public static Table ParseTable(string directory, string code)
 		{
-			string tableDirectoryPath = $@"/home/john/Downloads/EBA Taxonomy and supporting documents.2.7.0.0/FullTaxonomy.2.7.0.0/www.eba.europa.eu/eu/fr/xbrl/crr/fws/fp/gl-2014-04/2016-11-15/tab/{code}/";
+			string tableDirectoryPath = $@"{directory}{code}/";
 
 			string labFileName = $"{code}-lab-codes.xml";
 
@@ -52,10 +54,9 @@
 
 			var rend = new XmlDocument();
 			rend.Load(rendFilePath);
-			var rendNs = new XmlNamespaceManager(rend.NameTable);
-			rendNs.AddNamespace("table", "http://xbrl.org/2014/table");
-			rendNs.AddNamespace("xlink", "http://www.w3.org/1999/xlink");
-			rendNs.AddNamespace("formula", "http://xbrl.org/2008/formula");
+			var rendNs = CreateNameSpaceManager(rend);
+
+
 			var tableElement = rend.SelectSingleNode(".//table:table", rendNs);
 
 			var tableId = tableElement.Attributes["id"].Value;
@@ -128,8 +129,10 @@
 					}
 					var o = int.Parse(breakdownTreeArc.GetAttribute("order"));
 					var aspectId = aspectNode.GetAttribute("id");
-					var zLabel = labels.First(l => l.Id == axisId).Value;
-					var ordinate = new Ordinate(aspectId, zLabel, o);
+					var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
+					var ordinateLabel = labelItem.Value + "*";
+
+					var ordinate = new Ordinate(aspectId, ordinateLabel, o);
 					axis.Ordinates.Add(ordinate);
 				}
 				if (!table.Axes.Any(a => a.Direction == axis.Direction))
@@ -138,6 +141,24 @@
 				}
 			}
 			return table;
+		}
+
+		static XmlNamespaceManager CreateNameSpaceManager(XmlDocument doc)
+		{
+			var ns = new XmlNamespaceManager(doc.NameTable);
+			var nav = doc.CreateNavigator();
+			nav.MoveToFollowing(XPathNodeType.Element);
+			var namespaces = nav.GetNamespacesInScope(XmlNamespaceScope.All);
+
+			foreach (var n in namespaces)
+			{
+				ns.AddNamespace(n.Key, n.Value);
+			}
+			////rendNs.AddNamespace("table", "http://xbrl.org/2014/table");
+			////rendNs.AddNamespace("xlink", "http://www.w3.org/1999/xlink");
+			////rendNs.AddNamespace("formula", "http://xbrl.org/2008/formula");
+
+			return ns;
 		}
 
 		public static OrdinateCollection SubOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels)
