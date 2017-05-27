@@ -4,12 +4,12 @@
 	{
 		public string Id { get; }
 		public string Code { get; }
-		public int Order { get; }
-		public Ordinate(string id, string code, int order)
+		public string Path { get; }
+		public Ordinate(string id, string code, string path)
 		{
 			Id = id;
 			Code = code;
-			Order = order;
+			Path = path;
 		}
 	}
 }

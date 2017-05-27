@@ -11,70 +11,70 @@
 		public void C_101_00()
 		{
 			var table = Parsing.ParseTable(Directory, "c_101.00");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_102_00()
 		{
 			var table = Parsing.ParseTable(Directory, "c_102.00");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_103_00()
 		{
 			var table = Parsing.ParseTable(Directory, "c_103.00");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_105_01()
 		{
 			var table = Parsing.ParseTable(Directory, "c_105.01");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_105_03()
 		{
 			var table = Parsing.ParseTable(Directory, "c_105.03");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_106_00()
 		{
 			var table = Parsing.ParseTable(Directory, "c_106.00");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_107_01_a()
 		{
 			var table = Parsing.ParseTable(Directory, "c_107.01.a");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_109_01_a()
 		{
 			var table = Parsing.ParseTable(Directory, "c_109.01.a");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_109_01_b()
 		{
 			var table = Parsing.ParseTable(Directory, "c_109.01.b");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 
 		[Test]
 		public void C_109_02()
 		{
 			var table = Parsing.ParseTable(Directory, "c_109.02");
-			Helper.DumpTable(table);
+			Helper.DumpAxes(table);
 		}
 	}
 }

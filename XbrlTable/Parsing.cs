@@ -46,14 +46,14 @@
 				var definitionNodeSubtreeArcs = rend.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{ruleNodeId}']", ns);
 				foreach (XmlElement definitionNodeSubtreeArc in definitionNodeSubtreeArcs)
 				{
-					int o;
 					Ordinate ordinate;
-					o = int.Parse(definitionNodeSubtreeArc.GetAttribute("order"));
+					var path = int.Parse(definitionNodeSubtreeArc.GetAttribute("order")).ToString("000");
+
 					// New axis ordinate
 					var id = definitionNodeSubtreeArc.GetAttribute("xlink:to");
 					//var ruleNode = (XmlElement)rend.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
 
-					var subOrdinates = SubOrdinates(rend, id, ns, labels);
+					var subOrdinates = SubOrdinates(rend, id, ns, labels, path);
 
 					foreach (var subOrdinate in subOrdinates)
 					{
@@ -64,26 +64,21 @@
 					var ordinateCode = ordinateLabel.Value;
 					if (!string.IsNullOrEmpty(ordinateCode))
 					{
-						ordinate = new Ordinate(id, ordinateCode, o);
+						ordinate = new Ordinate(id, ordinateCode, path);
 						axis.Ordinates.Add(ordinate);
 					}
-					else
-					{
-						Console.WriteLine($"abstract? {id}");
-					}
-
 				}
 
 				// key values
 				var aspectNodes = rend.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", ns);
 				foreach (XmlElement aspectNode in aspectNodes)
 				{
-					var o = int.Parse(breakdownTreeArc.GetAttribute("order"));
+					var path = breakdownTreeArc.GetAttribute("order");
 					var aspectId = aspectNode.GetAttribute("id");
 					var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
 					var ordinateLabel = labelItem.Value + "*";
 
-					var ordinate = new Ordinate(aspectId, ordinateLabel, o);
+					var ordinate = new Ordinate(aspectId, ordinateLabel, path);
 					axis.Ordinates.Add(ordinate);
 				}
 
@@ -103,25 +98,25 @@
 			{
 				ns.AddNamespace(n.Key, n.Value);
 			}
-			////rendNs.AddNamespace("table", "http://xbrl.org/2014/table");
-			////rendNs.AddNamespace("xlink", "http://www.w3.org/1999/xlink");
-			////rendNs.AddNamespace("formula", "http://xbrl.org/2008/formula");
-
 			return ns;
 		}
 
-		public static OrdinateCollection SubOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels)
+		public static OrdinateCollection SubOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels, string currentPath)
 		{
 			var result = new OrdinateCollection();
 			var items = doc.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{id}']", ns);
 			foreach (XmlElement item in items)
 			{
 				id = item.GetAttribute("xlink:to");
-				var order = int.Parse(item.GetAttribute("order"));
-				var ordinateCode = labels.Where(l => l.Id == id).First(l => l.Type == "rc-code").Value;
-				var ordinate = new Ordinate(id, ordinateCode, order);
-				result.Add(ordinate);
-				var subItems = SubOrdinates(doc, id, ns, labels);
+				var order = int.Parse(item.GetAttribute("order")).ToString("000");
+				var path = $"{currentPath}.{order}";
+				var ordinateCode = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code").Value;
+				if (!string.IsNullOrEmpty(ordinateCode))
+				{
+					var ordinate = new Ordinate(id, ordinateCode, path);
+					result.Add(ordinate);
+				}
+				var subItems = SubOrdinates(doc, id, ns, labels, path);
 				foreach (var subItem in subItems)
 				{
 					result.Add(subItem);
