@@ -41,6 +41,7 @@
     <Compile Include="AxisCollection.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="Label.cs" />
+    <Compile Include="Helper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

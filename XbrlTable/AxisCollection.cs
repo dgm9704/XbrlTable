@@ -2,11 +2,11 @@
 {
 	using System.Collections.ObjectModel;
 
-	public class AxisCollection : KeyedCollection<Direction, Axis>
+	public class AxisCollection : Collection<Axis> //KeyedCollection<Direction, Axis>
 	{
-		protected override Direction GetKeyForItem(Axis item)
-		{
-			return item.Direction;
-		}
+		//protected override Direction GetKeyForItem(Axis item)
+		//{
+		//	return item.Direction;
+		//}
 	}
 }

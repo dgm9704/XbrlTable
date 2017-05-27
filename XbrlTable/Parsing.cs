@@ -10,57 +10,24 @@
 	public static class Parsing
 	{
 
-		public static void DumpTable(Table table)
-		{
-			Console.WriteLine(table.Code);
-
-			var zAxes = table.Axes.Where(a => a.Direction == Direction.Z);
-			if (zAxes.Any())
-			{
-				Console.Write("Z");
-				foreach (var zAxis in zAxes.OrderBy(a => a.Order))
-				{
-					foreach (var z in zAxis.Ordinates)
-					{
-						Console.Write($"\t{z.Code}");
-					}
-				}
-				Console.WriteLine();
-			}
-
-			Console.Write("Y \\ X\t");
-			foreach (var x in table.Axes.Single(a => a.Direction == Direction.X).Ordinates.OrderBy(a => a.Code))
-			{
-				Console.Write(x.Code + "\t");
-			}
-			Console.WriteLine();
-			foreach (var y in table.Axes.Single(a => a.Direction == Direction.Y).Ordinates.OrderBy(a => a.Code))
-			{
-				Console.WriteLine(y.Code);
-			}
-		}
-
 		public static Table ParseTable(string directory, string code)
 		{
 			string tableDirectoryPath = $@"{directory}{code}/";
 
-			string labFileName = $"{code}-lab-codes.xml";
-
-			var labelFilePath = Path.Combine(tableDirectoryPath, labFileName);
-			var labels = ParseLabels(labelFilePath);
+			var labels = ParseLabels(directory, code);
 
 			string rendFilename = $"{code}-rend.xml";
 			var rendFilePath = Path.Combine(tableDirectoryPath, rendFilename);
 
 			var rend = new XmlDocument();
 			rend.Load(rendFilePath);
-			var rendNs = CreateNameSpaceManager(rend);
+			var ns = CreateNameSpaceManager(rend);
 
 
-			var tableElement = rend.SelectSingleNode(".//table:table", rendNs);
+			var tableElement = rend.SelectSingleNode(".//table:table", ns);
 
 			var tableId = tableElement.Attributes["id"].Value;
-			var tableBreakDownArcs = rend.SelectNodes($".//table:tableBreakdownArc[@xlink:from='{tableId}']", rendNs);
+			var tableBreakDownArcs = rend.SelectNodes($".//table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
 			var tableCode = labels.Where(l => l.Id == tableId).First(l => l.Type == "rc-code").Value;
 			var table = new Table(tableId, tableCode);
 
@@ -72,14 +39,11 @@
 				var axis = new Axis(order, direction);
 				var axisId = tableBreakDownArc.GetAttribute("xlink:to");
 
-				var breakdownTreeArc = (XmlElement)rend.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", rendNs);
+				var breakdownTreeArc = (XmlElement)rend.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", ns);
 				var ruleNodeId = breakdownTreeArc.Attributes["xlink:to"].Value;
 
-				//var ruleNode = rend.SelectSingleNode($".//table:ruleNode[@id='{ruleNodeId}']", ns);
-
-				// axis members = ruleNode children?
-
-				var definitionNodeSubtreeArcs = rend.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{ruleNodeId}']", rendNs);
+				// normal axis ordinates
+				var definitionNodeSubtreeArcs = rend.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{ruleNodeId}']", ns);
 				foreach (XmlElement definitionNodeSubtreeArc in definitionNodeSubtreeArcs)
 				{
 					int o;
@@ -87,46 +51,33 @@
 					o = int.Parse(definitionNodeSubtreeArc.GetAttribute("order"));
 					// New axis ordinate
 					var id = definitionNodeSubtreeArc.GetAttribute("xlink:to");
-					var ruleNode = (XmlElement)rend.SelectSingleNode($".//table:ruleNode[@id='{id}']", rendNs);
-					//var o = int.Parse(ruleNode.Attributes["order"].Value);
-					// ordinate members = axis members + ordinate members?
+					//var ruleNode = (XmlElement)rend.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
 
-					if (ruleNode.GetAttribute("abstract") == "true")
+					var subOrdinates = SubOrdinates(rend, id, ns, labels);
+
+					foreach (var subOrdinate in subOrdinates)
 					{
-						var subOrdinates = SubOrdinates(rend, id, rendNs, labels);
-
-						foreach (var subOrdinate in subOrdinates)
-						{
-							axis.Ordinates.Add(subOrdinate);
-						}
+						axis.Ordinates.Add(subOrdinate);
 					}
-					else
+
+					var ordinateLabel = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code");
+					var ordinateCode = ordinateLabel.Value;
+					if (!string.IsNullOrEmpty(ordinateCode))
 					{
-						var ordinateCode = labels.Where(l => l.Id == id).First(l => l.Type == "rc-code").Value;
 						ordinate = new Ordinate(id, ordinateCode, o);
 						axis.Ordinates.Add(ordinate);
 					}
+					else
+					{
+						Console.WriteLine($"abstract? {id}");
+					}
+
 				}
-				var aspectNodes = rend.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", rendNs);
+
+				// key values
+				var aspectNodes = rend.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", ns);
 				foreach (XmlElement aspectNode in aspectNodes)
 				{
-					if (direction == Direction.Y)
-					{
-						if (table.Axes.Any(a => a.Direction == Direction.X))
-						{
-							axis = table.Axes.First(a => a.Direction == Direction.X);
-							var yAxis = new Axis(0, Direction.Y);
-							var yOrdinate = new Ordinate("", "999", 0);
-							yAxis.Ordinates.Add(yOrdinate);
-							table.Axes.Add(yAxis);
-						}
-						else
-						{
-							axis = new Axis(order, Direction.X);
-							table.Axes.Add(axis);
-						}
-
-					}
 					var o = int.Parse(breakdownTreeArc.GetAttribute("order"));
 					var aspectId = aspectNode.GetAttribute("id");
 					var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
@@ -135,10 +86,8 @@
 					var ordinate = new Ordinate(aspectId, ordinateLabel, o);
 					axis.Ordinates.Add(ordinate);
 				}
-				if (!table.Axes.Any(a => a.Direction == axis.Direction))
-				{
-					table.Axes.Add(axis);
-				}
+
+				table.Axes.Add(axis);
 			}
 			return table;
 		}
@@ -181,26 +130,29 @@
 			return result;
 		}
 
-		public static Collection<Label> ParseLabels(string path)
+		public static Collection<Label> ParseLabels(string directory, string code)
 		{
+			string tableDirectoryPath = $@"{directory}{code}/";
+			string labFileName = $"{code}-lab-codes.xml";
+			var labelFilePath = Path.Combine(tableDirectoryPath, labFileName);
+
 			var labels = new Collection<Label>();
-			var lab = new XmlDocument();
-			lab.Load(path);
-			var labNs = new XmlNamespaceManager(lab.NameTable);
-			labNs.AddNamespace("link", "http://www.xbrl.org/2003/linkbase");
-			labNs.AddNamespace("xlink", "http://www.w3.org/1999/xlink");
-			var locators = lab.SelectNodes(".//link:loc", labNs);
+			var doc = new XmlDocument();
+			doc.Load(labelFilePath);
+			var ns = CreateNameSpaceManager(doc);
+
+			var locators = doc.SelectNodes(".//link:loc", ns);
 			foreach (XmlElement locator in locators)
 			{
 				//<link:loc xlink:type="locator" xlink:href="p_01.01-rend.xml#eba_tP_01.01" xlink:label="loc_eba_tP_01.01" />
 				var href = locator.GetAttribute("xlink:href").Split('#').Last();
 				var locatorId = locator.GetAttribute("xlink:label");
 				//    <gen:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label" xlink:from="loc_eba_tP_01.01" xlink:to="label_eba_tP_01.01" />
-				var arcs = lab.SelectNodes($".//node()[@xlink:from='{locatorId}']", labNs);
+				var arcs = doc.SelectNodes($".//node()[@xlink:from='{locatorId}']", ns);
 				foreach (XmlElement arc in arcs)
 				{
 					var labelId = arc.GetAttribute("xlink:to");
-					var labelElement = (XmlElement)lab.SelectSingleNode($".//node()[@xlink:label='{labelId}']", labNs);
+					var labelElement = (XmlElement)doc.SelectSingleNode($".//node()[@xlink:label='{labelId}']", ns);
 					var type = labelElement.GetAttribute("xlink:role").Split('/').Last();
 					var value = labelElement.InnerText;
 					var language = labelElement.GetAttribute("xml:lang");
