@@ -6,7 +6,7 @@
 	{
 		protected override string GetKeyForItem(Ordinate item)
 		{
-			return item.Id;
+			return item.Code;
 		}
 	}
 }

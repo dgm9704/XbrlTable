@@ -1,20 +1,18 @@
 ﻿namespace XbrlTable
 {
-	using System.Collections.Generic;
-
 	public struct Ordinate
 	{
-		public string Id { get; }
 		public string Code { get; }
 		public string Path { get; }
-		public string Member { get; }
+		public string Concept { get; }
+		public Signature Signature { get; }
 
-		public Ordinate(string id, string code, string path, string member)
+		public Ordinate(string code, string path, string member, Signature signature)
 		{
-			Id = id;
 			Code = code;
 			Path = path;
-			Member = member;
+			Concept = member;
+			Signature = signature;
 		}
 	}
 }
