@@ -42,6 +42,19 @@
 			{
 				Console.Write($"{y.Code}\t");
 				Console.Write(xOrdinates.Select(x => $"{x.Concept.Split(':').Last()}{y.Concept.Split(':').Last()}").Join("\t"));
+				//foreach (var x in xOrdinates)
+				//{
+				//	string axisAndMetric = "";
+				//	if (string.IsNullOrEmpty(x.Concept))
+				//	{
+				//		axisAndMetric = $"y{y.Concept.Split(':').Last()}";
+				//	}
+				//	else
+				//	{
+				//		axisAndMetric = $"x{x.Concept.Split(':').Last()}";
+				//	}
+				//	Console.Write(axisAndMetric + "\t");
+				//}
 				Console.WriteLine($"\t{y.Signature}");
 			}
 

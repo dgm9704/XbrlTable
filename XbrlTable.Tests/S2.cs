@@ -149,6 +149,13 @@
 		}
 
 		[Test]
+		public void S_12_01_01_01()
+		{
+			var table = Parsing.ParseTable(Directory, "s.12.01.01.01");
+			Helper.DumpTable(table);
+		}
+
+		[Test]
 		public void S_16_01_01_02()
 		{
 			var table = Parsing.ParseTable(Directory, "s.16.01.01.02");

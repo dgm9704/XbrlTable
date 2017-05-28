@@ -100,6 +100,7 @@
 
 					var ordinateLabel = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code");
 					var ordinateCode = ordinateLabel.Value;
+
 					if (!string.IsNullOrEmpty(ordinateCode))
 					{
 						ordinate = new Ordinate(ordinateCode, path, metric, signature);
