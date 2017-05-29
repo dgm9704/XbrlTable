@@ -26,7 +26,7 @@
 
 			var xAxis = table.Axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.X);
 			var xOrdinates = xAxis.Ordinates.OrderBy(o => o.Path);
-			Console.WriteLine(xOrdinates.Select(o => o.Code).Join("\t"));
+			Console.WriteLine(xOrdinates.Select(o => o.Code.PadRight(10)).Join("\t"));
 
 			var yAxis = table.Axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.Y);
 
@@ -41,7 +41,9 @@
 			foreach (var y in yOrdinates)
 			{
 				Console.Write($"{y.Code}\t");
-				Console.Write(xOrdinates.Select(x => $"{x.Concept.Split(':').Last()}{y.Concept.Split(':').Last()}").Join("\t"));
+				//Console.Write(xOrdinates.Select(x => $"{x.Concept.Split(':').Last()}{y.Concept.Split(':').Last()}").Join("\t"));
+				//Console.Write(xOrdinates.Select(x => $"{y.Concept.Split(':').Last()}").Join("\t"));
+				Console.Write(xOrdinates.Select(x => ".".PadRight(10)).Join("\t"));
 				//foreach (var x in xOrdinates)
 				//{
 				//	string axisAndMetric = "";
@@ -55,7 +57,7 @@
 				//	}
 				//	Console.Write(axisAndMetric + "\t");
 				//}
-				Console.WriteLine($"\t{y.Signature}");
+				Console.WriteLine($"{y.Concept.Split(':').Last()} {y.Signature}");
 			}
 
 			var max = xOrdinates.Select(o => o.Signature.Count).Max();
@@ -66,11 +68,23 @@
 				{
 					if (x.Signature.Count > i)
 					{
-						Console.Write(x.Signature.Values.ToList()[i]);
+						Console.Write(x.Signature.Values.ToList()[i].PadRight(10));
+					}
+					else
+					{
+						Console.Write(new string(' ', 10));
 					}
 					Console.Write("\t");
 				}
 				Console.WriteLine();
+			}
+		}
+
+		public static void DumpHypercubes(IEnumerable<Hypercube> cubes)
+		{
+			foreach (var cube in cubes)
+			{
+				Console.WriteLine(cube);
 			}
 		}
 

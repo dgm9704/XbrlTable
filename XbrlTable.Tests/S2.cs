@@ -168,5 +168,19 @@
 			var table = Parsing.ParseTable(Directory, "s.22.06.01.04");
 			Helper.DumpTable(table);
 		}
+
+		[Test]
+		public void S_23_01_13_01()
+		{
+			var table = Parsing.ParseTable(Directory, "s.23.01.13.01");
+			Helper.DumpTable(table);
+		}
+
+		[Test]
+		public void S_23_01_13_01_cube()
+		{
+			var cubes = Parsing.ParseHypercubes(Directory, "s.23.01.13.01");
+			Helper.DumpHypercubes(cubes);
+		}
 	}
 }

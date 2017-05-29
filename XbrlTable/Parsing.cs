@@ -1,6 +1,7 @@
 ﻿namespace XbrlTable
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.IO;
 	using System.Linq;
@@ -9,6 +10,81 @@
 
 	public static class Parsing
 	{
+
+		public static List<Hypercube> ParseHypercubes(string directory, string code)
+		{
+			var result = new List<Hypercube>();
+
+			string tableDirectoryPath = $@"{directory}{code}/";
+
+			string defFileName = $"{code}-def.xml";
+			var defFilePath = Path.Combine(tableDirectoryPath, defFileName);
+
+			var doc = new XmlDocument();
+			doc.Load(defFilePath);
+			var ns = CreateNameSpaceManager(doc);
+
+			var definitionLinks = doc.SelectNodes(".//link:definitionLink", ns);
+			foreach (XmlElement definitionLink in definitionLinks)
+			{
+				var metrics = new List<string>();
+				var metricNodes = definitionLink.SelectNodes("link:loc[contains(@xlink:href, 'met.xsd')]", ns);
+				foreach (XmlElement metricNode in metricNodes)
+				{
+					var metric = metricNode.GetAttribute("xlink:href").Split('#').Last();
+					metrics.Add(metric);
+				}
+
+
+				var contexts = new List<Context>();
+
+				var foos = definitionLink.SelectNodes("link:definitionArc[@xlink:arcrole = 'http://xbrl.org/int/dim/arcrole/all']", ns);
+				foreach (XmlElement foo in foos)
+				{
+					var hypId = foo.GetAttribute("xlink:to");
+					// context
+					var hyp = definitionLink.SelectSingleNode($"link:loc[@xlink:label='{hypId}']", ns);
+
+					// dimensions
+					var hypercubeDimensions = definitionLink.SelectNodes($"link:definitionArc[@xlink:from='{hypId}']", ns);
+					foreach (XmlElement hypercubeDimension in hypercubeDimensions)
+					{
+						var dimensionNodeId = hypercubeDimension.GetAttribute("xlink:to");
+						var dimensionNode = (XmlElement)definitionLink.SelectSingleNode($"link:loc[@xlink:label='{dimensionNodeId}']", ns);
+
+						// actually needs to be looked up from the location specified in href!!!
+						var dimension = dimensionNode.GetAttribute("xlink:href").Split('#').Last();
+
+						var dimensionDomainNode = (XmlElement)definitionLink.SelectSingleNode($"link:definitionArc[@xlink:from='{dimensionNodeId}']", ns);
+						var domainNodeId = dimensionDomainNode.GetAttribute("xlink:to");
+						var domainNode = (XmlElement)definitionLink.SelectSingleNode($"link:loc[@xlink:label='{domainNodeId}']", ns);
+
+						// actually needs to be looked up from the location specified in href!!!
+						var domain = domainNode.GetAttribute("xlink:href").Split('#').Last();
+
+						var members = new List<string>();
+						var domainMemberNodes = definitionLink.SelectNodes($"link:definitionArc[@xlink:from='{domainNodeId}']", ns);
+						foreach (XmlElement domainMemberNode in domainMemberNodes)
+						{
+							var memberNodeId = domainMemberNode.GetAttribute("xlink:to");
+							var memberNode = (XmlElement)definitionLink.SelectSingleNode($"link:loc[@xlink:label='{memberNodeId}']", ns);
+							// actually needs to be looked up from the location specified in href!!!
+							var member = memberNode.GetAttribute("xlink:href").Split('#').Last();
+							members.Add(member);
+						}
+
+						var context = new Context(dimension, domain, members);
+						contexts.Add(context);
+					}
+
+				}
+
+				var role = definitionLink.GetAttribute("xlink:role").Split('/').Last();
+				result.Add(new Hypercube(metrics, contexts));
+			}
+
+			return result;
+		}
 
 		public static Table ParseTable(string directory, string code)
 		{
@@ -46,11 +122,6 @@
 				var ruleNode = (XmlElement)doc.SelectSingleNode($".//table:ruleNode[@id='{ruleNodeId}']", ns);
 				if (ruleNode != null)
 				{
-					//var metricNode = ruleNode.SelectSingleNode("formula:concept/formula:qname", ns);
-					//if (metricNode != null)
-					//{
-					//	metric = metricNode.InnerText;
-					//}
 					var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
 					foreach (XmlElement sigNode in sigNodes)
 					{
@@ -82,6 +153,7 @@
 						{
 							metric = metricNode.InnerText;
 						}
+
 						var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
 						foreach (XmlElement sigNode in sigNodes)
 						{
@@ -169,6 +241,7 @@
 					{
 						metric = metricNode.InnerText;
 					}
+
 					var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
 					foreach (XmlElement sigNode in sigNodes)
 					{
