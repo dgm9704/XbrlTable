@@ -10,8 +10,28 @@
 
 	public static class Parsing
 	{
+		public static Dictionary<string, string> ParseNames(string path)
+		{
+			var metrics = new Dictionary<string, string>();
+			var doc = new XmlDocument();
+			doc.Load(path);
+			var root = doc.DocumentElement;
+			var ns = CreateNameSpaceManager(doc);
+			var metricNodes = root.SelectNodes("xs:element", ns);
+			var metricNs = root.GetAttribute("targetNamespace");
+			var metricPrefix = ns.LookupPrefix(metricNs);
+			foreach (XmlElement metricNode in metricNodes)
+			{
+				var metricName = metricNode.GetAttribute("name");
+				metrics.Add(metricNode.GetAttribute("id"), $"{metricPrefix}:{metricName}");
+			}
+			return metrics;
+		}
 
-		public static List<Hypercube> ParseHypercubes(string directory, string code)
+		public static List<Hypercube> ParseHypercubes(string directory, string code,
+													  Dictionary<string, string> metricNames,
+													  Dictionary<string, string> dimensionNames,
+													  Dictionary<string, string> domainNames)
 		{
 			var result = new List<Hypercube>();
 
@@ -34,8 +54,9 @@
 
 				foreach (XmlElement metricNode in metricNodes)
 				{
-					var metric = metricNode.GetAttribute("xlink:href").Split('#').Last();
-					metrics.Add(metric);
+					var metricId = metricNode.GetAttribute("xlink:href").Split('#').Last();
+					var metricName = metricNames[metricId];
+					metrics.Add(metricName);
 				}
 
 				if (metrics.Any())
@@ -47,8 +68,6 @@
 					{
 
 						var hypId = foo.GetAttribute("xlink:to");
-						// context
-						//var hyp = definitionLink.SelectSingleNode($"link:loc[@xlink:label='{hypId}']", ns);
 
 						// dimensions
 						var hypercubeDimensions = definitionLink.SelectNodes($"link:definitionArc[@xlink:from='{hypId}']", ns);
@@ -67,10 +86,11 @@
 
 							dimensionNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{dimensionNodeId}']", ns);
 
-							// actually needs to be looked up from the location specified in href!!!
-							var dimension = dimensionNode.GetAttribute("xlink:href").Split('#').Last();
+							var dimensionId = dimensionNode.GetAttribute("xlink:href").Split('#').Last();
+							var dimensionName = dimensionNames[dimensionId];
+
 							var members = new List<string>();
-							string domain = "";
+							string domainName = "";
 							var dimensionDomainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:definitionArc[@xlink:from='{dimensionNodeId}']", ns);
 							if (dimensionDomainNode != null)
 							{
@@ -78,7 +98,8 @@
 								var domainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{domainNodeId}']", ns);
 
 								// actually needs to be looked up from the location specified in href!!!
-								domain = domainNode.GetAttribute("xlink:href").Split('#').Last();
+								var domainId = domainNode.GetAttribute("xlink:href").Split('#').Last();
+								domainName = domainNames[domainId];
 
 								var domainMemberNodes = currentDefinitionLink.SelectNodes($"link:definitionArc[@xlink:from='{domainNodeId}']", ns);
 								foreach (XmlElement domainMemberNode in domainMemberNodes)
@@ -91,7 +112,7 @@
 								}
 							}
 
-							var context = new Dimension(dimension, domain, members);
+							var context = new Dimension(dimensionName, domainName, members);
 							contexts.Add(context);
 						}
 
