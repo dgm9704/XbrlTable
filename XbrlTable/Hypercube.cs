@@ -1,22 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace XbrlTable
+﻿namespace XbrlTable
 {
+	using System.Collections.Generic;
+	using System.Linq;
+
 	public struct Hypercube
 	{
 		public List<string> Metrics { get; }
-		public List<Context> Contexts { get; }
+		public List<Dimension> Dimensions { get; }
 
-		public Hypercube(List<string> metrics, List<Context> contexts)
+		public Hypercube(List<string> metrics, List<Dimension> dimensions)
 		{
 			Metrics = metrics;
-			Contexts = contexts;
+			Dimensions = dimensions;
 		}
 
 		public override string ToString()
 		{
-			return $"[Hypercube: Metrics={Metrics.Join(",")}, Contexts={Contexts.Select(c => c.ToString()).Join(";")}]";
+			return $"[Hypercube: Metrics={Metrics.Join(",")}, Dimensions={Dimensions.Select(d => d.ToString()).Join(";")}]";
 		}
 	}
 }

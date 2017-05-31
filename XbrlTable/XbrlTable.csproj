@@ -44,7 +44,7 @@
     <Compile Include="Helper.cs" />
     <Compile Include="Signature.cs" />
     <Compile Include="Hypercube.cs" />
-    <Compile Include="Context.cs" />
+    <Compile Include="Dimension.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

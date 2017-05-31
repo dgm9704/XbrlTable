@@ -182,5 +182,28 @@
 			var cubes = Parsing.ParseHypercubes(Directory, "s.23.01.13.01");
 			Helper.DumpHypercubes(cubes);
 		}
+
+		[Test]
+		public void S_26_03_01_02_cube()
+		{
+			var cubes = Parsing.ParseHypercubes(Directory, "s.26.03.01.02");
+			Helper.DumpHypercubes(cubes);
+		}
+
+		[Test]
+		public void S_26_07_01_02_cube()
+		{
+			var table = Parsing.ParseTable(Directory, "s.26.07.01.02");
+			var cubes = Parsing.ParseHypercubes(Directory, "s.26.07.01.02");
+			Helper.DumpTable(table);
+			Helper.DumpHypercubes(cubes);
+		}
+
+		[Test]
+		public void S_26_07_01_04_cube()
+		{
+			var cubes = Parsing.ParseHypercubes(Directory, "s.26.07.01.04");
+			Helper.DumpHypercubes(cubes);
+		}
 	}
 }
