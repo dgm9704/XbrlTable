@@ -19,7 +19,7 @@
 			foreach (var axis in table.Axes.Where(a => a.IsOpen))
 			{
 				Console.Write($"{axis.Direction}\t");
-				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Concept.Split(':').Last()}").Join("\t")); ;
+				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Signature}").Join("\t")); ;
 			}
 
 			Console.Write("Y \\ X\t");
@@ -34,30 +34,15 @@
 
 			if (!yOrdinates.Any())
 			{
-				yOrdinates = new List<Ordinate>() { new Ordinate("999", "0", "", new Signature()) };
+				yOrdinates = new List<Ordinate>() { new Ordinate("999", "0", new Signature()) };
 
 			}
 
 			foreach (var y in yOrdinates)
 			{
 				Console.Write($"{y.Code}\t");
-				//Console.Write(xOrdinates.Select(x => $"{x.Concept.Split(':').Last()}{y.Concept.Split(':').Last()}").Join("\t"));
-				//Console.Write(xOrdinates.Select(x => $"{y.Concept.Split(':').Last()}").Join("\t"));
 				Console.Write(xOrdinates.Select(x => ".".PadRight(10)).Join("\t"));
-				//foreach (var x in xOrdinates)
-				//{
-				//	string axisAndMetric = "";
-				//	if (string.IsNullOrEmpty(x.Concept))
-				//	{
-				//		axisAndMetric = $"y{y.Concept.Split(':').Last()}";
-				//	}
-				//	else
-				//	{
-				//		axisAndMetric = $"x{x.Concept.Split(':').Last()}";
-				//	}
-				//	Console.Write(axisAndMetric + "\t");
-				//}
-				Console.WriteLine($"{y.Concept.Split(':').Last()} {y.Signature}");
+				Console.WriteLine($"{y.Signature}");
 			}
 
 			var max = xOrdinates.Select(o => o.Signature.Count).Max();
@@ -66,14 +51,23 @@
 				Console.Write("\t");
 				foreach (var x in xOrdinates)
 				{
-					if (x.Signature.Count > i)
+					var e = x.Signature.ElementAtOrDefault(i);
+					if (!string.IsNullOrEmpty(e.Key))
 					{
-						Console.Write(x.Signature.Values.ToList()[i].PadRight(10));
+						if (e.Key == "met")
+						{
+							Console.Write($"{e.Value.Split(':').Last()}".PadRight(10));
+						}
+						else
+						{
+							Console.Write($"{e.Key.Split(':').Last()}/{e.Value}".PadRight(10));
+						}
 					}
 					else
 					{
 						Console.Write(new string(' ', 10));
 					}
+
 					Console.Write("\t");
 				}
 				Console.WriteLine();
@@ -101,7 +95,7 @@
 			foreach (var axis in table.Axes.Where(a => a.IsOpen))
 			{
 				Console.Write($"{axis.Direction}\t");
-				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Concept.Split(':').Last()}").Join("\t")); ;
+				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Signature["met"].Split(':').Last()}").Join("\t")); ;
 			}
 
 			Console.Write("Y \\ X\t");
@@ -116,13 +110,13 @@
 
 			if (!yOrdinates.Any())
 			{
-				yOrdinates = new List<Ordinate>() { new Ordinate("999", "0", "", new Signature()) };
+				yOrdinates = new List<Ordinate>() { new Ordinate("999", "0", new Signature()) };
 			}
 
 			foreach (var y in yOrdinates)
 			{
 				Console.Write($"{y.Code}\t");
-				Console.WriteLine(xOrdinates.Select(x => $"{x.Concept.Split(':').Last()}{y.Concept.Split(':').Last()}").Join("\t"));
+				Console.WriteLine(xOrdinates.Select(x => $"{x.Signature["met"].Split(':').Last()}{y.Signature["met"].Split(':').Last()}").Join("\t"));
 			}
 		}
 

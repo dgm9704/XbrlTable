@@ -216,9 +216,11 @@
 			typDomains.ToList().ForEach(x => domains.Add(x.Key, x.Value));
 
 
-
+			var table = Parsing.ParseTable(Directory, "s.26.07.01.04");
 			var cubes = Parsing.ParseHypercubes(Directory, "s.26.07.01.04", metrics, dimensions, domains);
+			Helper.DumpTable(table);
 			Helper.DumpHypercubes(cubes);
+
 		}
 	}
 }

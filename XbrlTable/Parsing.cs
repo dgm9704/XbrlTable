@@ -192,6 +192,7 @@
 						if (metricNode != null)
 						{
 							metric = metricNode.InnerText;
+							signature["met"] = metric;
 						}
 
 						var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
@@ -215,7 +216,7 @@
 
 					if (!string.IsNullOrEmpty(ordinateCode))
 					{
-						ordinate = new Ordinate(ordinateCode, path, metric, signature);
+						ordinate = new Ordinate(ordinateCode, path, signature);
 						ordinates.Add(ordinate);
 					}
 				}
@@ -229,11 +230,13 @@
 					var path = breakdownTreeArc.GetAttribute("order");
 					//var aspectId = aspectNode.GetAttribute("id");
 					var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
-					var ordinateCode = labelItem.Value + "*";
+					var ordinateCode = labelItem.Value;
 					var dimensionNode = aspectNode.SelectSingleNode("table:dimensionAspect", ns);
-					var member = dimensionNode.InnerText;
+					var dimension = dimensionNode.InnerText;
+					var member = "*";
 					var signature = new Signature();
-					var ordinate = new Ordinate(ordinateCode, path, member, signature);
+					signature.Add(dimension, member);
+					var ordinate = new Ordinate(ordinateCode, path, signature);
 
 					ordinates.Add(ordinate);
 				}
@@ -280,6 +283,7 @@
 					if (metricNode != null)
 					{
 						metric = metricNode.InnerText;
+						signature["met"] = metric;
 					}
 
 					var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
@@ -294,7 +298,7 @@
 
 				if (!string.IsNullOrEmpty(ordinateCode))
 				{
-					var ordinate = new Ordinate(ordinateCode, path, metric, signature);
+					var ordinate = new Ordinate(ordinateCode, path, signature);
 					result.Add(ordinate);
 				}
 
