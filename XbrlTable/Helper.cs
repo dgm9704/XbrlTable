@@ -6,6 +6,30 @@
 
 	public static class Helper
 	{
+		public static void DumpDatapoints(Table table)
+		{
+			var datapoints = new List<Tuple<string, string>>();
+			var xAxis = table.Axes.Where(a => a.Direction == Direction.X).Single(a => !a.IsOpen);
+			var yAxis = table.Axes.Where(a => a.Direction == Direction.Y).SingleOrDefault(a => !a.IsOpen);
+			var tableSignature = table.
+									  Axes.
+									  Where(a => a.IsOpen).
+									  SelectMany(a => a.Ordinates).
+									  SelectMany(o => o.Signature);
+
+			foreach (var y in yAxis.Ordinates)
+			{
+				foreach (var x in xAxis.Ordinates)
+				{
+					var address = $"{table.Code}_{y.Code}_{x.Code}";
+					var signature = tableSignature.Concat(y.Signature).Concat(x.Signature).Where(i => !string.IsNullOrEmpty(i.Value)).Select(m => m.ToString()).Join(",");
+					datapoints.Add(Tuple.Create(signature, address));
+				}
+			}
+
+			Console.WriteLine(datapoints.Select(p => $"{p.Item1}->{p.Item2}").Join("\n"));
+		}
+
 		public static void DumpTable(Table table)
 		{
 			Console.WriteLine(table.Code);

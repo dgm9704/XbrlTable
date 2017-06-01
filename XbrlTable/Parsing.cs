@@ -246,6 +246,22 @@
 					table.Axes.Add(axis);
 				}
 			}
+
+			if (!table.Axes.Any(a => a.Direction == Direction.Y && !a.IsOpen))
+			{
+				table.Axes.Add(new Axis(1, Direction.Y, false, new OrdinateCollection() { new Ordinate("999", "0", new Signature()) }));
+			}
+
+			var yAxis = table.Axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.Y);
+
+			var yOrdinates = (yAxis.Ordinates ?? new OrdinateCollection()).OrderBy(o => o.Path).ToList();
+
+			if (!yOrdinates.Any())
+			{
+
+
+			}
+
 			return table;
 		}
 

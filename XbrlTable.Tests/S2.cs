@@ -13,6 +13,7 @@
 		{
 			var table = Parsing.ParseTable(Directory, "e.01.01.16.01");
 			Helper.DumpTable(table);
+			Helper.DumpDatapoints(table);
 		}
 
 		[Test]
@@ -111,6 +112,7 @@
 		{
 			var table = Parsing.ParseTable(Directory, "s.04.01.01.02");
 			Helper.DumpTable(table);
+			Helper.DumpDatapoints(table);
 		}
 
 		[Test]
@@ -201,8 +203,9 @@
 		//}
 
 		[Test]
-		public void S_26_07_01_04_cube()
+		public void S_26_07_01_03_cube()
 		{
+			var code = "s.26.07.01.03";
 			var metFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2md/dict/met/met.xsd";
 			var metrics = Parsing.ParseNames(metFile);
 
@@ -213,14 +216,42 @@
 			var typFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dom/typ.xsd";
 			var domains = Parsing.ParseNames(expFile);
 			var typDomains = Parsing.ParseNames(typFile);
+
+
 			typDomains.ToList().ForEach(x => domains.Add(x.Key, x.Value));
 
 
-			var table = Parsing.ParseTable(Directory, "s.26.07.01.04");
-			var cubes = Parsing.ParseHypercubes(Directory, "s.26.07.01.04", metrics, dimensions, domains);
+			var table = Parsing.ParseTable(Directory, code);
+			var cubes = Parsing.ParseHypercubes(Directory, code, metrics, dimensions, domains);
 			Helper.DumpTable(table);
 			Helper.DumpHypercubes(cubes);
 
+		}
+
+		[Test]
+		public void S_26_07_01_04_cube()
+		{
+			var code = "s.26.07.01.04";
+			var metFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2md/dict/met/met.xsd";
+			var metrics = Parsing.ParseNames(metFile);
+
+			var dimFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dim/dim.xsd";
+			var dimensions = Parsing.ParseNames(dimFile);
+
+			var expFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dom/exp.xsd";
+			var typFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dom/typ.xsd";
+			var domains = Parsing.ParseNames(expFile);
+			var typDomains = Parsing.ParseNames(typFile);
+
+
+			typDomains.ToList().ForEach(x => domains.Add(x.Key, x.Value));
+
+
+			var table = Parsing.ParseTable(Directory, code);
+			var cubes = Parsing.ParseHypercubes(Directory, code, metrics, dimensions, domains);
+			Helper.DumpTable(table);
+			Helper.DumpHypercubes(cubes);
+			Helper.DumpDatapoints(table);
 		}
 	}
 }
