@@ -151,7 +151,6 @@
 			doc.Load(rendFilePath);
 			var ns = CreateNameSpaceManager(doc);
 
-
 			var tableElement = doc.SelectSingleNode(".//table:table", ns);
 
 			var tableId = tableElement.Attributes["id"].Value;
@@ -165,7 +164,7 @@
 				var order = int.Parse(tableBreakDownArc.GetAttribute("order"));
 				var direction = (Direction)Enum.Parse(typeof(Direction), tableBreakDownArc.GetAttribute("axis"), true);
 
-				var ordinates = new OrdinateCollection();
+				//var ordinates = new OrdinateCollection();
 				var axisSignature = new Signature();
 				var axisId = tableBreakDownArc.GetAttribute("xlink:to");
 
@@ -183,75 +182,18 @@
 					}
 				}
 
-
 				// normal axis ordinates
-				var definitionNodeSubtreeArcs = doc.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{ruleNodeId}']", ns);
-				foreach (XmlElement definitionNodeSubtreeArc in definitionNodeSubtreeArcs)
-				{
-					Ordinate ordinate;
-					string metric = "";
-					var signature = new Signature(axisSignature);
+				var ordinates = ParseOrdinates(doc, ruleNodeId, ns, labels, "", new Signature(axisSignature));
 
-					var path = int.Parse(definitionNodeSubtreeArc.GetAttribute("order")).ToString("000");
-
-					// New axis ordinate
-					var id = definitionNodeSubtreeArc.GetAttribute("xlink:to");
-					ruleNode = (XmlElement)doc.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
-
-					if (ruleNode != null)
-					{
-						var metricNode = ruleNode.SelectSingleNode("formula:concept/formula:qname", ns);
-						if (metricNode != null)
-						{
-							metric = metricNode.InnerText;
-							signature["met"] = metric;
-						}
-
-						var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
-						foreach (XmlElement sigNode in sigNodes)
-						{
-							var dimension = sigNode.GetAttribute("dimension");
-							var member = sigNode.SelectSingleNode("formula:member/formula:qname", ns).InnerText;
-							signature[dimension] = member;
-						}
-					}
-
-					var subOrdinates = SubOrdinates(doc, id, ns, labels, path, signature);
-
-					foreach (var subOrdinate in subOrdinates)
-					{
-						ordinates.Add(subOrdinate);
-					}
-
-					var ordinateLabel = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code");
-					var ordinateCode = ordinateLabel.Value;
-
-					if (!string.IsNullOrEmpty(ordinateCode))
-					{
-						ordinate = new Ordinate(ordinateCode, path, signature);
-						ordinates.Add(ordinate);
-					}
-				}
+				var aspectId = breakdownTreeArc.GetAttribute("xlink:to");
+				var aspectOrder = breakdownTreeArc.GetAttribute("order");
 
 				// key values
-				var aspectNodes = doc.SelectNodes($".//table:aspectNode[@id='{breakdownTreeArc.GetAttribute("xlink:to")}']", ns);
-				var openAxis = aspectNodes.Count > 0;
+				var keyOrdinates = ParseKeyOrdinates(doc, ns, aspectId, aspectOrder, axisId, labels);
+				var openAxis = keyOrdinates.Count > 0;
 
-				foreach (XmlElement aspectNode in aspectNodes)
-				{
-					var path = breakdownTreeArc.GetAttribute("order");
-					//var aspectId = aspectNode.GetAttribute("id");
-					var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
-					var ordinateCode = labelItem.Value;
-					var dimensionNode = aspectNode.SelectSingleNode("table:dimensionAspect", ns);
-					var dimension = dimensionNode.InnerText;
-					var member = "*";
-					var signature = new Signature();
-					signature.Add(dimension, member);
-					var ordinate = new Ordinate(ordinateCode, path, signature);
+				ordinates.AddRange(keyOrdinates);
 
-					ordinates.Add(ordinate);
-				}
 				if (ordinates.Any())
 				{
 					var axis = new Axis(order, direction, openAxis, ordinates);
@@ -291,7 +233,30 @@
 			return ns;
 		}
 
-		public static OrdinateCollection SubOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels, string currentPath, Signature currentSignature)
+		public static OrdinateCollection ParseKeyOrdinates(XmlDocument doc, XmlNamespaceManager ns, string aspectId, string order, string axisId, Collection<Label> labels)
+		{
+			var ordinates = new OrdinateCollection();
+
+			var aspectNodes = doc.SelectNodes($".//table:aspectNode[@id='{aspectId}']", ns);
+
+			foreach (XmlElement aspectNode in aspectNodes)
+			{
+				var path = order;
+				var labelItem = labels.FirstOrDefault(l => l.Id == axisId);
+				var ordinateCode = labelItem.Value;
+				var dimensionNode = aspectNode.SelectSingleNode("table:dimensionAspect", ns);
+				var dimension = dimensionNode.InnerText;
+				var member = "*";
+				var signature = new Signature();
+				signature.Add(dimension, member);
+				var ordinate = new Ordinate(ordinateCode, path, signature);
+
+				ordinates.Add(ordinate);
+			}
+			return ordinates;
+		}
+
+		public static OrdinateCollection ParseOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels, string currentPath, Signature currentSignature)
 		{
 			var result = new OrdinateCollection();
 			var items = doc.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{id}']", ns);
@@ -299,7 +264,7 @@
 			{
 				id = item.GetAttribute("xlink:to");
 				var order = int.Parse(item.GetAttribute("order")).ToString("000");
-				var path = $"{currentPath}.{order}";
+				var path = string.IsNullOrEmpty(currentPath) ? order : $"{currentPath}.{order}";
 				var ordinateCode = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code").Value;
 				var metric = "";
 				var signature = new Signature(currentSignature);
@@ -330,7 +295,7 @@
 					result.Add(ordinate);
 				}
 
-				var subItems = SubOrdinates(doc, id, ns, labels, path, signature);
+				var subItems = ParseOrdinates(doc, id, ns, labels, path, signature);
 				foreach (var subItem in subItems)
 				{
 					result.Add(subItem);
