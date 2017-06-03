@@ -10,34 +10,46 @@
 
 	public static class Parsing
 	{
+		static Dictionary<string, Dictionary<string, string>> preloaded = new Dictionary<string, Dictionary<string, string>>();
+
 		public static Dictionary<string, string> ParseNames(string path)
 		{
-			var metrics = new Dictionary<string, string>();
-			var doc = new XmlDocument();
-			doc.Load(path);
-			var root = doc.DocumentElement;
-			var ns = CreateNameSpaceManager(doc);
-			var metricNodes = root.SelectNodes("xs:element", ns);
-			var metricNs = root.GetAttribute("targetNamespace");
-			var metricPrefix = ns.LookupPrefix(metricNs);
-			foreach (XmlElement metricNode in metricNodes)
+			Dictionary<string, string> result;
+			if (preloaded.ContainsKey(path))
 			{
-				var metricName = metricNode.GetAttribute("name");
-				metrics.Add(metricNode.GetAttribute("id"), $"{metricPrefix}:{metricName}");
+				result = preloaded[path];
 			}
-			return metrics;
+			else
+			{
+				result = new Dictionary<string, string>();
+				var doc = new XmlDocument();
+				doc.Load(path);
+				var root = doc.DocumentElement;
+				var ns = CreateNameSpaceManager(doc);
+				var metricNodes = root.SelectNodes("xs:element", ns);
+				var metricNs = root.GetAttribute("targetNamespace");
+				var metricPrefix = ns.LookupPrefix(metricNs);
+				foreach (XmlElement metricNode in metricNodes)
+				{
+					var metricName = metricNode.GetAttribute("name");
+					result.Add(metricNode.GetAttribute("id"), $"{metricPrefix}:{metricName}");
+				}
+				preloaded[path] = result;
+			}
+
+			return result;
 		}
 
-		public static List<Hypercube> ParseHypercubes(string directory, string code,
+		public static List<Hypercube> ParseHypercubes(string taxonomyPath, string tableCode,
 													  Dictionary<string, string> metricNames,
 													  Dictionary<string, string> dimensionNames,
 													  Dictionary<string, string> domainNames)
 		{
 			var result = new List<Hypercube>();
 
-			string tableDirectoryPath = $@"{directory}{code}/";
+			string tableDirectoryPath = $@"{taxonomyPath}/tab/{tableCode}/";
 
-			string defFileName = $"{code}-def.xml";
+			string defFileName = $"{tableCode}-def.xml";
 			var defFilePath = Path.Combine(tableDirectoryPath, defFileName);
 
 			var doc = new XmlDocument();
@@ -126,11 +138,11 @@
 			return result;
 		}
 
-		public static Table ParseTable(string directory, string code)
+		public static Table ParseTable(string taxonomyPath, string code)
 		{
-			string tableDirectoryPath = $@"{directory}{code}/";
+			string tableDirectoryPath = $@"{taxonomyPath}/tab/{code}/";
 
-			var labels = ParseLabels(directory, code);
+			var labels = ParseLabels(taxonomyPath, code);
 
 			string rendFilename = $"{code}-rend.xml";
 			var rendFilePath = Path.Combine(tableDirectoryPath, rendFilename);
@@ -327,9 +339,9 @@
 			return result;
 		}
 
-		public static Collection<Label> ParseLabels(string directory, string code)
+		public static Collection<Label> ParseLabels(string taxonomyPath, string code)
 		{
-			string tableDirectoryPath = $@"{directory}{code}/";
+			string tableDirectoryPath = $@"{taxonomyPath}/tab/{code}/";
 			string labFileName = $"{code}-lab-codes.xml";
 			var labelFilePath = Path.Combine(tableDirectoryPath, labFileName);
 
