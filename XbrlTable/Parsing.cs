@@ -77,16 +77,16 @@
 							var dimensionNodeId = hypercubeDimension.GetAttribute("xlink:to");
 
 							var targetRole = hypercubeDimension.GetAttribute("xbrldt:targetRole");
+							var dimensionNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{dimensionNodeId}']", ns);
+							var dimensionHref = dimensionNode.GetAttribute("xlink:href");
 
-							XmlElement dimensionNode;
 							if (!string.IsNullOrEmpty(targetRole))
 							{
 								currentDefinitionLink = (XmlElement)root.SelectSingleNode($"link:definitionLink[@xlink:role='{targetRole}']", ns);
+								dimensionNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:href='{dimensionHref}']", ns);
 							}
 
-							dimensionNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{dimensionNodeId}']", ns);
-
-							var dimensionId = dimensionNode.GetAttribute("xlink:href").Split('#').Last();
+							var dimensionId = dimensionHref.Split('#').Last();
 							var dimensionName = dimensionNames[dimensionId];
 
 							var members = new List<string>();

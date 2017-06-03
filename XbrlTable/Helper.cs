@@ -8,12 +8,13 @@
 	{
 		public static void DumpDatapoints(Table table)
 		{
+			Console.WriteLine(table.Code);
 			var datapoints = new List<Tuple<string, string>>();
 			var xAxis = table.Axes.Where(a => a.Direction == Direction.X).Single(a => !a.IsOpen);
 			var yAxis = table.Axes.Where(a => a.Direction == Direction.Y).SingleOrDefault(a => !a.IsOpen);
 			var tableSignature = table.
 									  Axes.
-									  Where(a => a.IsOpen).
+									  Where(a => a.IsOpen || a.Direction == Direction.Z).
 									  SelectMany(a => a.Ordinates).
 									  SelectMany(o => o.Signature);
 
@@ -156,5 +157,31 @@
 		}
 
 		public static string Join(this IEnumerable<string> values, string separator) => string.Join(separator, values);
+
+		public static void DumpAll(string Directory, string code)
+		{
+			var table = Parsing.ParseTable(Directory, code);
+
+			var metFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2md/dict/met/met.xsd";
+			var metrics = Parsing.ParseNames(metFile);
+
+			var dimFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dim/dim.xsd";
+			var dimensions = Parsing.ParseNames(dimFile);
+
+			var expFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dom/exp.xsd";
+			var typFile = "/home/john/Downloads/EIOPA_SolvencyII_XBRL_Taxonomy_2.1.0/eiopa.europa.eu/eu/xbrl/s2c/dict/dom/typ.xsd";
+			var domains = Parsing.ParseNames(expFile);
+			var typDomains = Parsing.ParseNames(typFile);
+
+
+			typDomains.ToList().ForEach(x => domains.Add(x.Key, x.Value));
+			var cubes = Parsing.ParseHypercubes(Directory, code, metrics, dimensions, domains);
+
+			DumpAxes(table);
+			DumpTable(table);
+			DumpDatapoints(table);
+			DumpHypercubes(cubes);
+
+		}
 	}
 }
