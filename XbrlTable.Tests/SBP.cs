@@ -5,76 +5,79 @@
 	[TestFixture]
 	public class SBP
 	{
-		string Directory = "/home/john/Downloads/EBA Taxonomy and supporting documents.2.6.0.0/FullTaxonomy.2.6.0.0/www.eba.europa.eu/eu/fr/xbrl/crr/fws/sbp/its-2016-svbxx/2016-02-01/tab/";
+		string TaxonomyPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/fws/sbp/its-2016-svbxx/2016-02-01";
+		string MetricPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/dict/met";
+		string DimensionPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/dict/dim";
+		string DomainPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/dict/dom";
 
 		[Test]
 		public void C_101_00()
 		{
-			var table = Parsing.ParseTable(Directory, "c_101.00");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_101.00");
+
 		}
 
 		[Test]
 		public void C_102_00()
 		{
-			var table = Parsing.ParseTable(Directory, "c_102.00");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_102.00");
+
 		}
 
 		[Test]
 		public void C_103_00()
 		{
-			var table = Parsing.ParseTable(Directory, "c_103.00");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_103.00");
+
 		}
 
 		[Test]
 		public void C_105_01()
 		{
-			var table = Parsing.ParseTable(Directory, "c_105.01");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_105.01");
+
 		}
 
 		[Test]
 		public void C_105_03()
 		{
-			var table = Parsing.ParseTable(Directory, "c_105.03");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_105.03");
+
 		}
 
 		[Test]
 		public void C_106_00()
 		{
-			var table = Parsing.ParseTable(Directory, "c_106.00");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_106.00");
+
 		}
 
 		[Test]
 		public void C_107_01_a()
 		{
-			var table = Parsing.ParseTable(Directory, "c_107.01.a");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_107.01.a");
+
 		}
 
 		[Test]
 		public void C_109_01_a()
 		{
-			var table = Parsing.ParseTable(Directory, "c_109.01.a");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_109.01.a");
+
 		}
 
 		[Test]
 		public void C_109_01_b()
 		{
-			var table = Parsing.ParseTable(Directory, "c_109.01.b");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_109.01.b");
+
 		}
 
 		[Test]
 		public void C_109_02()
 		{
-			var table = Parsing.ParseTable(Directory, "c_109.02");
-			Helper.DumpAxesAndMetrics(table);
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_109.02");
+
 		}
 	}
 }
