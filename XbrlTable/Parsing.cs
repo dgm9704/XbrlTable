@@ -109,7 +109,6 @@
 								var domainNodeId = dimensionDomainNode.GetAttribute("xlink:to");
 								var domainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{domainNodeId}']", ns);
 
-								// actually needs to be looked up from the location specified in href!!!
 								var domainId = domainNode.GetAttribute("xlink:href").Split('#').Last();
 								domainName = domainNames[domainId];
 
@@ -130,7 +129,6 @@
 
 					}
 
-					//var role = definitionLink.GetAttribute("xlink:role").Split('/').Last();
 					result.Add(new Hypercube(metrics, contexts));
 				}
 			}
@@ -150,11 +148,12 @@
 			var doc = new XmlDocument();
 			doc.Load(rendFilePath);
 			var ns = CreateNameSpaceManager(doc);
+			var root = (XmlElement)doc.DocumentElement.SelectSingleNode("gen:link", ns);
 
-			var tableElement = doc.SelectSingleNode(".//table:table", ns);
+			var tableElement = root.SelectSingleNode("table:table", ns);
 
 			var tableId = tableElement.Attributes["id"].Value;
-			var tableBreakDownArcs = doc.SelectNodes($".//table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
+			var tableBreakDownArcs = root.SelectNodes($"table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
 			var tableCode = labels.Where(l => l.Id == tableId).First(l => l.Type == "rc-code").Value;
 			var table = new Table(tableId, tableCode);
 
@@ -164,13 +163,12 @@
 				var order = int.Parse(tableBreakDownArc.GetAttribute("order"));
 				var direction = (Direction)Enum.Parse(typeof(Direction), tableBreakDownArc.GetAttribute("axis"), true);
 
-				//var ordinates = new OrdinateCollection();
 				var axisSignature = new Signature();
 				var axisId = tableBreakDownArc.GetAttribute("xlink:to");
 
-				var breakdownTreeArc = (XmlElement)doc.SelectSingleNode($".//table:breakdownTreeArc[@xlink:from='{axisId}']", ns);
+				var breakdownTreeArc = (XmlElement)root.SelectSingleNode($"table:breakdownTreeArc[@xlink:from='{axisId}']", ns);
 				var ruleNodeId = breakdownTreeArc.Attributes["xlink:to"].Value;
-				var ruleNode = (XmlElement)doc.SelectSingleNode($".//table:ruleNode[@id='{ruleNodeId}']", ns);
+				var ruleNode = (XmlElement)root.SelectSingleNode($"table:ruleNode[@id='{ruleNodeId}']", ns);
 				if (ruleNode != null)
 				{
 					var sigNodes = ruleNode.SelectNodes("formula:explicitDimension", ns);
@@ -183,13 +181,13 @@
 				}
 
 				// normal axis ordinates
-				var ordinates = ParseOrdinates(doc, ruleNodeId, ns, labels, "", new Signature(axisSignature));
+				var ordinates = ParseOrdinates(root, ruleNodeId, ns, labels, "", new Signature(axisSignature));
 
 				var aspectId = breakdownTreeArc.GetAttribute("xlink:to");
 				var aspectOrder = breakdownTreeArc.GetAttribute("order");
 
 				// key values
-				var keyOrdinates = ParseKeyOrdinates(doc, ns, aspectId, aspectOrder, axisId, labels);
+				var keyOrdinates = ParseKeyOrdinates(root, ns, aspectId, aspectOrder, axisId, labels);
 				var openAxis = keyOrdinates.Count > 0;
 
 				ordinates.AddRange(keyOrdinates);
@@ -233,11 +231,11 @@
 			return ns;
 		}
 
-		public static OrdinateCollection ParseKeyOrdinates(XmlDocument doc, XmlNamespaceManager ns, string aspectId, string order, string axisId, Collection<Label> labels)
+		public static OrdinateCollection ParseKeyOrdinates(XmlElement root, XmlNamespaceManager ns, string aspectId, string order, string axisId, Collection<Label> labels)
 		{
 			var ordinates = new OrdinateCollection();
 
-			var aspectNodes = doc.SelectNodes($".//table:aspectNode[@id='{aspectId}']", ns);
+			var aspectNodes = root.SelectNodes($"table:aspectNode[@id='{aspectId}']", ns);
 
 			foreach (XmlElement aspectNode in aspectNodes)
 			{
@@ -256,10 +254,10 @@
 			return ordinates;
 		}
 
-		public static OrdinateCollection ParseOrdinates(XmlDocument doc, string id, XmlNamespaceManager ns, Collection<Label> labels, string currentPath, Signature currentSignature)
+		public static OrdinateCollection ParseOrdinates(XmlElement root, string id, XmlNamespaceManager ns, Collection<Label> labels, string currentPath, Signature currentSignature)
 		{
 			var result = new OrdinateCollection();
-			var items = doc.SelectNodes($".//table:definitionNodeSubtreeArc[@xlink:from='{id}']", ns);
+			var items = root.SelectNodes($"table:definitionNodeSubtreeArc[@xlink:from='{id}']", ns);
 			foreach (XmlElement item in items)
 			{
 				id = item.GetAttribute("xlink:to");
@@ -268,7 +266,7 @@
 				var ordinateCode = labels.Where(l => l.Id == id).FirstOrDefault(l => l.Type == "rc-code").Value;
 				var metric = "";
 				var signature = new Signature(currentSignature);
-				var ruleNode = (XmlElement)doc.SelectSingleNode($".//table:ruleNode[@id='{id}']", ns);
+				var ruleNode = (XmlElement)root.SelectSingleNode($"table:ruleNode[@id='{id}']", ns);
 
 				if (ruleNode != null)
 				{
@@ -295,7 +293,7 @@
 					result.Add(ordinate);
 				}
 
-				var subItems = ParseOrdinates(doc, id, ns, labels, path, signature);
+				var subItems = ParseOrdinates(root, id, ns, labels, path, signature);
 				foreach (var subItem in subItems)
 				{
 					result.Add(subItem);
@@ -314,24 +312,22 @@
 			var doc = new XmlDocument();
 			doc.Load(labelFilePath);
 			var ns = CreateNameSpaceManager(doc);
+			var root = doc.DocumentElement.SelectSingleNode("gen:link", ns);
 
-			var locators = doc.SelectNodes(".//link:loc", ns);
+			var locators = root.SelectNodes("link:loc", ns);
 			foreach (XmlElement locator in locators)
 			{
-				//<link:loc xlink:type="locator" xlink:href="p_01.01-rend.xml#eba_tP_01.01" xlink:label="loc_eba_tP_01.01" />
 				var href = locator.GetAttribute("xlink:href").Split('#').Last();
 				var locatorId = locator.GetAttribute("xlink:label");
-				//    <gen:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label" xlink:from="loc_eba_tP_01.01" xlink:to="label_eba_tP_01.01" />
-				var arcs = doc.SelectNodes($".//node()[@xlink:from='{locatorId}']", ns);
+				var arcs = root.SelectNodes($"node()[@xlink:from='{locatorId}']", ns);
 				foreach (XmlElement arc in arcs)
 				{
 					var labelId = arc.GetAttribute("xlink:to");
-					var labelElement = (XmlElement)doc.SelectSingleNode($".//node()[@xlink:label='{labelId}']", ns);
+					var labelElement = (XmlElement)root.SelectSingleNode($"node()[@xlink:label='{labelId}']", ns);
 					var type = labelElement.GetAttribute("xlink:role").Split('/').Last();
 					var value = labelElement.InnerText;
 					var language = labelElement.GetAttribute("xml:lang");
 					var label = new Label(href, type, language, value);
-					//    <label:label xlink:type="resource" xlink:label="label_eba_tP_01.01" xml:lang="en" xlink:role="http://www.eurofiling.info/xbrl/role/rc-code">P 01.01</label:label>
 					labels.Add(label);
 				}
 			}
