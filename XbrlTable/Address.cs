@@ -22,7 +22,7 @@
 			{
 				result = $"{result}/{Sheet}";
 			}
-			return result;
+			return result.Replace(" ", "");
 		}
 	}
 }

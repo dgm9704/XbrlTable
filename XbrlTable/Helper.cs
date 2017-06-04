@@ -8,7 +8,7 @@
 	{
 		public static void DumpDatapoints(Table table)
 		{
-			Console.WriteLine(table.Code);
+			Console.WriteLine($"{table.Code} datapoints");
 			var datapoints = Parsing.ParseDatapoints(table);
 			Console.WriteLine(datapoints.Select(p => $"{p.Item1}->{p.Item2}").Join("\n"));
 		}
@@ -149,6 +149,7 @@
 
 			var dimFile = $"{dimensionPath}/dim.xsd";
 			var dimensions = Parsing.ParseNames(dimFile);
+			var typedDimensions = Parsing.ParseTypedDimensions(dimFile);
 
 			var expFile = $"{domainPath}/exp.xsd";
 			var typFile = $"{domainPath}/typ.xsd";
@@ -156,7 +157,7 @@
 			var typDomains = Parsing.ParseNames(typFile);
 
 			typDomains.ToList().ForEach(x => domains[x.Key] = x.Value);
-			var cubes = Parsing.ParseHypercubes(taxonomyPath, tableCode, metrics, dimensions, domains);
+			var cubes = Parsing.ParseHypercubes(taxonomyPath, tableCode, metrics, dimensions, domains, typedDimensions);
 
 			DumpAxes(table);
 			DumpTable(table);

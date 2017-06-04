@@ -11,6 +11,7 @@
 	public static class Parsing
 	{
 		static Dictionary<string, Dictionary<string, string>> preloaded = new Dictionary<string, Dictionary<string, string>>();
+		static Dictionary<string, Dictionary<string, string>> loadedTypedDimensions = new Dictionary<string, Dictionary<string, string>>();
 
 		public static Dictionary<string, string> ParseNames(string path)
 		{
@@ -40,10 +41,43 @@
 			return result;
 		}
 
+		public static Dictionary<string, string> ParseTypedDimensions(string path)
+		{
+			Dictionary<string, string> result;
+			if (loadedTypedDimensions.ContainsKey(path))
+			{
+				result = loadedTypedDimensions[path];
+			}
+			else
+			{
+				result = new Dictionary<string, string>();
+				var doc = new XmlDocument();
+				doc.Load(path);
+				var root = doc.DocumentElement;
+				var ns = CreateNameSpaceManager(doc);
+				var dimensionNodes = root.SelectNodes("xs:element[@xbrldt:typedDomainRef]", ns);
+				var dimensionNs = root.GetAttribute("targetNamespace");
+				var dimensionPrefix = ns.LookupPrefix(dimensionNs);
+				foreach (XmlElement dimensionNode in dimensionNodes)
+				{
+					var dimensionName = dimensionNode.GetAttribute("name");
+					var dimensionId = dimensionNode.GetAttribute("id");
+					var typedDomainRef = dimensionNode.GetAttribute("xbrldt:typedDomainRef");
+					var typedDomain = typedDomainRef.Split('#').Last();
+					result[dimensionId] = typedDomain;
+				}
+				loadedTypedDimensions[path] = result;
+			}
+
+			return result;
+		}
+
+
 		public static List<Hypercube> ParseHypercubes(string taxonomyPath, string tableCode,
 													  Dictionary<string, string> metricNames,
 													  Dictionary<string, string> dimensionNames,
-													  Dictionary<string, string> domainNames)
+													  Dictionary<string, string> domainNames,
+													 Dictionary<string, string> typedDimensions)
 		{
 			var result = new List<Hypercube>();
 
@@ -96,6 +130,7 @@
 							{
 								currentDefinitionLink = (XmlElement)root.SelectSingleNode($"link:definitionLink[@xlink:role='{targetRole}']", ns);
 								dimensionNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:href='{dimensionHref}']", ns);
+								dimensionNodeId = dimensionNode.GetAttribute("xlink:label");
 							}
 
 							var dimensionId = dimensionHref.Split('#').Last();
@@ -115,12 +150,25 @@
 								var domainMemberNodes = currentDefinitionLink.SelectNodes($"link:definitionArc[@xlink:from='{domainNodeId}']", ns);
 								foreach (XmlElement domainMemberNode in domainMemberNodes)
 								{
-									var memberNodeId = domainMemberNode.GetAttribute("xlink:to");
-									var memberNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{memberNodeId}']", ns);
-									// actually needs to be looked up from the location specified in href!!!
-									var member = memberNode.GetAttribute("xlink:href").Split('#').Last();
-									members.Add(member);
+									if (domainMemberNode.GetAttribute("xbrldt:usable") == "false")
+									{
+										Console.WriteLine("whoa, disallowed member");
+									}
+									else
+									{
+										var memberNodeId = domainMemberNode.GetAttribute("xlink:to");
+										var memberNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{memberNodeId}']", ns);
+										// actually needs to be looked up from the location specified in href!!!
+										var member = memberNode.GetAttribute("xlink:href").Split('#').Last();
+										members.Add(member);
+									}
 								}
+							}
+							else
+							{
+								var domainId = typedDimensions[dimensionId];
+								domainName = domainNames[domainId];
+								members.Add("*");
 							}
 
 							var context = new Dimension(dimensionName, domainName, members);

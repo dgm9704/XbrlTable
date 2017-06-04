@@ -16,7 +16,7 @@
 
 		public override string ToString()
 		{
-			return $"[Hypercube: Metrics={Metrics.Join(",")}, Dimensions={Dimensions.Select(d => d.ToString()).Join(";")}]";
+			return $"[{Metrics.Join(",")}];{Dimensions.Select(d => d.ToString()).Join(";")}]";
 		}
 	}
 }
