@@ -211,5 +211,17 @@
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "s.26.07.01.04");
 		}
+
+		[Test]
+		public void S_30_01_01_01()
+		{
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "s.30.01.01.01");
+		}
+
+		[Test]
+		public void S_30_01_01_02()
+		{
+			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "s.30.01.01.02");
+		}
 	}
 }

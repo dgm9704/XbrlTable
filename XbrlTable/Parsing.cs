@@ -56,11 +56,8 @@
 				var root = doc.DocumentElement;
 				var ns = CreateNameSpaceManager(doc);
 				var dimensionNodes = root.SelectNodes("xs:element[@xbrldt:typedDomainRef]", ns);
-				var dimensionNs = root.GetAttribute("targetNamespace");
-				var dimensionPrefix = ns.LookupPrefix(dimensionNs);
 				foreach (XmlElement dimensionNode in dimensionNodes)
 				{
-					var dimensionName = dimensionNode.GetAttribute("name");
 					var dimensionId = dimensionNode.GetAttribute("id");
 					var typedDomainRef = dimensionNode.GetAttribute("xbrldt:typedDomainRef");
 					var typedDomain = typedDomainRef.Split('#').Last();
@@ -285,6 +282,7 @@
 
 			var aspectNodes = root.SelectNodes($"table:aspectNode[@id='{aspectId}']", ns);
 
+
 			foreach (XmlElement aspectNode in aspectNodes)
 			{
 				var path = order;
@@ -292,7 +290,33 @@
 				var ordinateCode = labelItem.Value;
 				var dimensionNode = aspectNode.SelectSingleNode("table:dimensionAspect", ns);
 				var dimension = dimensionNode.InnerText;
+
+				//<table:aspectNodeFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2014/aspect-node-filter" xlink:from="s2md_a6.root" xlink:to="s2md_a6.root.filter" complement="false" />
+
+				//	< df:explicitDimension xlink:type = "resource" xlink: label = "s2md_a6.root.filter" id = "s2md_a6.root.filter" > 
+				//	< df:dimension >
+				//	   < df:qname > s2c_dim:BL </ df:qname >
+				//		  </ df:dimension >
+				//		   < df:member >
+				//			  < df:qname > s2c_LB:x0 </ df:qname >
+				//				   < df:linkrole > http://eiopa.europa.eu/xbrl/s2c/role/dict/dom/LB/33</df:linkrole>
+				//< df:arcrole > http://xbrl.org/int/dim/arcrole/domain-member</df:arcrole>
+				//< df:axis > descendant </ df:axis >
+				//   </ df:member >
+				//  </ df:explicitDimension >
+
 				var member = "*";
+				var filterArc = (XmlElement)root.SelectSingleNode($"table:aspectNodeFilterArc[@xlink:from='{aspectId}']", ns);
+				if (filterArc != null)
+				{
+					var explicitDimensionId = filterArc.GetAttribute("xlink:to");
+					var explicitDimension = (XmlElement)root.SelectSingleNode($"df:explicitDimension[@id='{explicitDimensionId}']", ns);
+					var linkroleNode = (XmlElement)explicitDimension.SelectSingleNode("df:member/df:linkrole", ns);
+					var role = linkroleNode.InnerText;
+					var r = role.Split('/');
+					member = $"{r[r.Length - 2]}/{r[r.Length - 1]}";
+				}
+
 				var signature = new Signature();
 				signature.Add(dimension, member);
 				var ordinate = new Ordinate(ordinateCode, path, signature);
