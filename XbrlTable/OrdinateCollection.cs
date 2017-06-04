@@ -8,6 +8,6 @@
 	{
 		protected override string GetKeyForItem(Ordinate item) => item.Code;
 
-		internal void AddRange(IEnumerable<Ordinate> values) => values.ToList().ForEach(v => Add(v));
+		public void AddRange(IEnumerable<Ordinate> values) => values.ToList().ForEach(v => Add(v));
 	}
 }

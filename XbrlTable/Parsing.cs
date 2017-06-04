@@ -333,5 +333,53 @@
 			}
 			return labels;
 		}
+
+		public static List<Tuple<Signature, Address>> ParseDatapoints(Table table)
+		{
+			var datapoints = new List<Tuple<Signature, Address>>();
+			var xAxis = table.Axes.Where(a => a.Direction == Direction.X).Single(a => !a.IsOpen);
+			var yAxis = table.Axes.Where(a => a.Direction == Direction.Y).SingleOrDefault(a => !a.IsOpen);
+			var tableSignature = table.
+									  Axes.
+									  Where(a => a.IsOpen).
+									  SelectMany(a => a.Ordinates).
+									  SelectMany(o => o.Signature);
+
+			var sheets = table.
+							  Axes.
+							  Where(a => a.Direction == Direction.Z).
+							  Where(a => !a.IsOpen).
+							  SelectMany(a => a.Ordinates);
+
+			if (!sheets.Any())
+			{
+				sheets = new Ordinate[] { new Ordinate("", "", new Signature()) };
+			}
+
+			foreach (var sheet in sheets)
+			{
+				foreach (var y in yAxis.Ordinates)
+				{
+					foreach (var x in xAxis.Ordinates)
+					{
+						var address = new Address(table.Code, y.Code, x.Code, sheet.Code);
+
+
+						var combinedOrdinates = sheet.Signature.
+											 Concat(tableSignature).
+											 Concat(y.Signature).
+											 Concat(x.Signature).
+											 Where(i => !string.IsNullOrEmpty(i.Value)).
+											 ToList();
+
+						var combinedSignature = new Signature();
+						combinedOrdinates.ForEach(o => combinedSignature[o.Key] = o.Value);
+
+						datapoints.Add(Tuple.Create(combinedSignature, address));
+					}
+				}
+			}
+			return datapoints;
+		}
 	}
 }

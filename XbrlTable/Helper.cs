@@ -9,25 +9,7 @@
 		public static void DumpDatapoints(Table table)
 		{
 			Console.WriteLine(table.Code);
-			var datapoints = new List<Tuple<string, string>>();
-			var xAxis = table.Axes.Where(a => a.Direction == Direction.X).Single(a => !a.IsOpen);
-			var yAxis = table.Axes.Where(a => a.Direction == Direction.Y).SingleOrDefault(a => !a.IsOpen);
-			var tableSignature = table.
-									  Axes.
-									  Where(a => a.IsOpen || a.Direction == Direction.Z).
-									  SelectMany(a => a.Ordinates).
-									  SelectMany(o => o.Signature);
-
-			foreach (var y in yAxis.Ordinates)
-			{
-				foreach (var x in xAxis.Ordinates)
-				{
-					var address = $"{table.Code}_{y.Code}_{x.Code}";
-					var signature = tableSignature.Concat(y.Signature).Concat(x.Signature).Where(i => !string.IsNullOrEmpty(i.Value)).Select(m => m.ToString()).Join(",");
-					datapoints.Add(Tuple.Create(signature, address));
-				}
-			}
-
+			var datapoints = Parsing.ParseDatapoints(table);
 			Console.WriteLine(datapoints.Select(p => $"{p.Item1}->{p.Item2}").Join("\n"));
 		}
 
@@ -38,7 +20,7 @@
 			foreach (var axis in table.Axes.Where(a => a.Direction == Direction.Z).Where(a => !a.IsOpen))
 			{
 				Console.Write($"{axis.Direction}\t");
-				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => o.Code).Join("\t"));
+				Console.WriteLine(axis.Ordinates.OrderBy(o => o.Path).Select(o => $"{o.Code} {o.Signature}").Join("\t"));
 			}
 
 			foreach (var axis in table.Axes.Where(a => a.IsOpen))
