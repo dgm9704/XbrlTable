@@ -1,9 +1,9 @@
 ﻿namespace XbrlTable.Tests
 {
 	using System.Linq;
-	using NUnit.Framework;
-
-	[TestFixture]
+	using Xunit;
+	using XbrlTable;
+	
 	public class SBP
 	{
 		string TaxonomyPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/fws/sbp/its-2015-01+2018exercise/2016-11-15"; // "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/fws/sbp/its-2016-svbxx/2016-02-01";
@@ -11,14 +11,14 @@
 		string DimensionPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/dict/dim";
 		string DomainPath = "/home/john/xbrl/www.eba.europa.eu/eu/fr/xbrl/crr/dict/dom";
 
-		[Test]
+		[Fact]
 		public void C_101_00()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_101.00");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_101_00_hypercubes()
 		{
 			var tableCode = "c_101.00";
@@ -42,63 +42,63 @@
 			Helper.DumpHypercubes(cubes);
 		}
 
-		[Test]
+		[Fact]
 		public void C_102_00()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_102.00");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_103_00()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_103.00");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_105_01()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_105.01");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_105_03()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_105.03");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_106_00()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_106.00");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_107_01_a()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_107.01.a");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_109_01_a()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_109.01.a");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_109_01_b()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_109.01.b");
 
 		}
 
-		[Test]
+		[Fact]
 		public void C_109_02()
 		{
 			Helper.DumpAll(TaxonomyPath, MetricPath, DimensionPath, DomainPath, "c_109.02");

@@ -5,10 +5,10 @@
 	using System.Collections.ObjectModel;
 	using System.IO;
 	using System.Linq;
-	using System.Xml;
-	using System.Xml.XPath;
+    using System.Xml;
+    using System.Xml.XPath;
 
-	public static class Parsing
+    public static class Parsing
 	{
 		static Dictionary<string, Dictionary<string, string>> preloaded = new Dictionary<string, Dictionary<string, string>>();
 		static Dictionary<string, Dictionary<string, string>> loadedTypedDimensions = new Dictionary<string, Dictionary<string, string>>();
@@ -21,27 +21,33 @@
 				result = preloaded[path];
 			}
 			else
-			{
-				result = new Dictionary<string, string>();
-				var doc = new XmlDocument();
-				doc.Load(path);
-				var root = doc.DocumentElement;
-				var ns = CreateNameSpaceManager(doc);
-				var metricNodes = root.SelectNodes("xs:element", ns);
-				var metricNs = root.GetAttribute("targetNamespace");
-				var metricPrefix = ns.LookupPrefix(metricNs);
-				foreach (XmlElement metricNode in metricNodes)
-				{
-					var metricName = metricNode.GetAttribute("name");
-					result.Add(metricNode.GetAttribute("id"), $"{metricPrefix}:{metricName}");
-				}
-				preloaded[path] = result;
-			}
+            {
+                result = new Dictionary<string, string>();
+                var doc = LoadDocument(path);
+                var root = doc.DocumentElement;
+                var ns = CreateNameSpaceManager(doc);
+                var metricNodes = root.SelectNodes("xs:element", ns);
+                var metricNs = root.GetAttribute("targetNamespace");
+                var metricPrefix = ns.LookupPrefix(metricNs);
+                foreach (XmlElement metricNode in metricNodes)
+                {
+                    var metricName = metricNode.GetAttribute("name");
+                    result.Add(metricNode.GetAttribute("id"), $"{metricPrefix}:{metricName}");
+                }
+                preloaded[path] = result;
+            }
 
-			return result;
+            return result;
 		}
 
-		public static Dictionary<string, string> ParseTypedDimensions(string path)
+        private static XmlDocument LoadDocument(string path)
+        {
+            var doc = new XmlDocument();
+            doc.Load(new FileStream(path, FileMode.Open, FileAccess.Read));
+            return doc;
+        }
+
+        public static Dictionary<string, string> ParseTypedDimensions(string path)
 		{
 			Dictionary<string, string> result;
 			if (loadedTypedDimensions.ContainsKey(path))
@@ -51,8 +57,7 @@
 			else
 			{
 				result = new Dictionary<string, string>();
-				var doc = new XmlDocument();
-				doc.Load(path);
+				var doc = LoadDocument(path);
 				var root = doc.DocumentElement;
 				var ns = CreateNameSpaceManager(doc);
 				var dimensionNodes = root.SelectNodes("xs:element[@xbrldt:typedDomainRef]", ns);
@@ -83,8 +88,7 @@
 			string defFileName = $"{tableCode}-def.xml";
 			var defFilePath = Path.Combine(tableDirectoryPath, defFileName);
 
-			var doc = new XmlDocument();
-			doc.Load(defFilePath);
+			var doc = LoadDocument(defFilePath);
 			var ns = CreateNameSpaceManager(doc);
 			var root = doc.DocumentElement;
 
@@ -190,8 +194,7 @@
 			string rendFilename = $"{code}-rend.xml";
 			var rendFilePath = Path.Combine(tableDirectoryPath, rendFilename);
 
-			var doc = new XmlDocument();
-			doc.Load(rendFilePath);
+			var doc = LoadDocument(rendFilePath);
 			var ns = CreateNameSpaceManager(doc);
 			var root = (XmlElement)doc.DocumentElement.SelectSingleNode("gen:link", ns);
 
@@ -381,8 +384,7 @@
 			var labelFilePath = Path.Combine(tableDirectoryPath, labFileName);
 
 			var labels = new Collection<Label>();
-			var doc = new XmlDocument();
-			doc.Load(labelFilePath);
+			var doc = LoadDocument(labelFilePath);
 			var ns = CreateNameSpaceManager(doc);
 			var root = doc.DocumentElement.SelectSingleNode("gen:link", ns);
 
