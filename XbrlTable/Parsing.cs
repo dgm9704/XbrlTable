@@ -107,7 +107,6 @@
             return result;
         }
 
-
         public static List<Hypercube> ParseHypercubes(string taxonomyPath, string tableCode,
                                                       Dictionary<string, string> metricNames,
                                                       Dictionary<string, string> dimensionNames,
@@ -232,11 +231,24 @@
             var root = (XmlElement)doc.DocumentElement.SelectSingleNode("gen:link", ns);
 
             var tableElement = root.SelectSingleNode("table:table", ns);
-
             var tableId = tableElement.Attributes["id"].Value;
-            var tableBreakDownArcs = root.SelectNodes($"table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
+
+            var axes = ParseAxes(labels, ns, root, tableId);
+
+            var yAxis = axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.Y);
+
+            var yOrdinates = (yAxis.Ordinates ?? new OrdinateCollection()).OrderBy(o => o.Path).ToList();
+
             var tableCode = labels.Where(l => l.Id == tableId).First(l => l.Type == "rc-code").Value;
-            var table = new Table(tableId, tableCode);
+            var table = new Table(tableId, tableCode, axes);
+
+            return table;
+        }
+
+        private static List<Axis> ParseAxes(Collection<Label> labels, XmlNamespaceManager ns, XmlElement root, string tableId)
+        {
+            var tableBreakDownArcs = root.SelectNodes($"table:tableBreakdownArc[@xlink:from='{tableId}']", ns);
+            var axes = new List<Axis>();
 
             foreach (XmlElement tableBreakDownArc in tableBreakDownArcs)
             {
@@ -276,26 +288,21 @@
                 if (ordinates.Any())
                 {
                     var axis = new Axis(order, direction, openAxis, ordinates);
-                    table.Axes.Add(axis);
+                    axes.Add(axis);
                 }
             }
 
-            if (!table.Axes.Any(a => a.Direction == Direction.Y && !a.IsOpen))
+            if (!axes.Any(a => a.Direction == Direction.Y && !a.IsOpen))
             {
-                table.Axes.Add(new Axis(1, Direction.Y, false, new OrdinateCollection() { new Ordinate("999", "0", new Signature()) }));
+                axes.Add(new Axis(1, Direction.Y, false, new OrdinateCollection() { new Ordinate("999", "0", new Signature()) }));
             }
 
-            var yAxis = table.Axes.Where(a => !a.IsOpen).FirstOrDefault(a => a.Direction == Direction.Y);
+            return axes;
+        }
 
-            var yOrdinates = (yAxis.Ordinates ?? new OrdinateCollection()).OrderBy(o => o.Path).ToList();
-
-            if (!yOrdinates.Any())
-            {
-
-
-            }
-
-            return table;
+        private static object ParseAxes(string rendFilePath)
+        {
+            throw new NotImplementedException();
         }
 
         static XmlNamespaceManager CreateNameSpaceManager(XmlDocument doc)

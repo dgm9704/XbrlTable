@@ -1,12 +1,14 @@
 ﻿namespace XbrlTable
 {
-	using System.Collections.ObjectModel;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
 
-	public class AxisCollection : Collection<Axis> //KeyedCollection<Direction, Axis>
-	{
-		//protected override Direction GetKeyForItem(Axis item)
-		//{
-		//	return item.Direction;
-		//}
-	}
+    public class AxisCollection : Collection<Axis> //KeyedCollection<Direction, Axis>
+    {
+        public AxisCollection(IEnumerable<Axis> axes)
+        {
+            axes.ToList().ForEach(this.Add);
+        }
+    }
 }
