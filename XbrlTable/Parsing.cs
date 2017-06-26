@@ -127,26 +127,17 @@
             var definitionLinks = root.SelectNodes("link:definitionLink", ns);
             foreach (XmlElement definitionLink in definitionLinks)
             {
-                var metrics = new List<string>();
-                var metricNodes = definitionLink.SelectNodes("link:loc[contains(@xlink:href, 'met.xsd')]", ns);
-
-
-                foreach (XmlElement metricNode in metricNodes)
-                {
-                    var metricId = metricNode.GetAttribute("xlink:href").Split('#').Last();
-                    var metricName = metricNames[metricId];
-                    metrics.Add(metricName);
-                }
+                var metrics = ParseMetrics(metricNames, ns, definitionLink);
 
                 if (metrics.Any())
                 {
-                    var contexts = new List<Dimension>();
+                    var dimensions = new List<Dimension>();
 
-                    var foos = definitionLink.SelectNodes("link:definitionArc[@xlink:arcrole = 'http://xbrl.org/int/dim/arcrole/all']", ns);
-                    foreach (XmlElement foo in foos)
+                    var hypercubes = definitionLink.SelectNodes("link:definitionArc[@xlink:arcrole = 'http://xbrl.org/int/dim/arcrole/all']", ns);
+                    foreach (XmlElement hypercube in hypercubes)
                     {
 
-                        var hypId = foo.GetAttribute("xlink:to");
+                        var hypId = hypercube.GetAttribute("xlink:to");
 
                         // dimensions
                         var hypercubeDimensions = definitionLink.SelectNodes($"link:definitionArc[@xlink:from='{hypId}']", ns);
@@ -166,55 +157,84 @@
                                 dimensionNodeId = dimensionNode.GetAttribute("xlink:label");
                             }
 
-                            var dimensionId = dimensionHref.Split('#').Last();
-                            var dimensionName = dimensionNames[dimensionId];
-
-                            var members = new List<string>();
-                            string domainName = "";
-                            var dimensionDomainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:definitionArc[@xlink:from='{dimensionNodeId}']", ns);
-                            if (dimensionDomainNode != null)
-                            {
-                                var domainNodeId = dimensionDomainNode.GetAttribute("xlink:to");
-                                var domainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{domainNodeId}']", ns);
-
-                                var domainId = domainNode.GetAttribute("xlink:href").Split('#').Last();
-                                domainName = domainNames[domainId];
-
-                                var domainMemberNodes = currentDefinitionLink.SelectNodes($"link:definitionArc[@xlink:from='{domainNodeId}']", ns);
-                                foreach (XmlElement domainMemberNode in domainMemberNodes)
-                                {
-                                    if (domainMemberNode.GetAttribute("xbrldt:usable") == "false")
-                                    {
-                                        Console.WriteLine("whoa, disallowed member");
-                                    }
-                                    else
-                                    {
-                                        var memberNodeId = domainMemberNode.GetAttribute("xlink:to");
-                                        var memberNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{memberNodeId}']", ns);
-                                        // actually needs to be looked up from the location specified in href!!!
-                                        var member = memberNode.GetAttribute("xlink:href").Split('#').Last();
-                                        members.Add(member);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                var domainId = typedDimensions[dimensionId];
-                                domainName = domainNames[domainId];
-                                members.Add("*");
-                            }
-
-                            var context = new Dimension(dimensionName, domainName, members);
-                            contexts.Add(context);
+                            var dimension = ParseDimension(dimensionNames, domainNames, typedDimensions, ns, currentDefinitionLink, dimensionNodeId, dimensionHref);
+                            dimensions.Add(dimension);
                         }
 
                     }
 
-                    result.Add(new Hypercube(metrics, contexts));
+                    result.Add(new Hypercube(metrics, dimensions));
                 }
             }
 
             return result;
+        }
+
+        private static Dimension ParseDimension(Dictionary<string, string> dimensionNames, Dictionary<string, string> domainNames, Dictionary<string, string> typedDimensions, XmlNamespaceManager ns, XmlElement currentDefinitionLink, string dimensionNodeId, string dimensionHref)
+        {
+            var dimensionId = dimensionHref.Split('#').Last();
+            var dimensionName = dimensionNames[dimensionId];
+
+            List<string> members = null;
+            string domainName = "";
+            var dimensionDomainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:definitionArc[@xlink:from='{dimensionNodeId}']", ns);
+            if (dimensionDomainNode != null)
+            { // explicit dimension
+                var domainNodeId = dimensionDomainNode.GetAttribute("xlink:to");
+                var domainNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{domainNodeId}']", ns);
+
+                var domainId = domainNode.GetAttribute("xlink:href").Split('#').Last();
+                domainName = domainNames[domainId];
+                members = ParseDomainMembers(ns, currentDefinitionLink, domainNodeId);
+            }
+            else
+            { // typed dimension
+                var domainId = typedDimensions[dimensionId];
+                domainName = domainNames[domainId];
+                members = new List<string> { "*" };
+            }
+
+            var context = new Dimension(dimensionName, domainName, members);
+            return context;
+        }
+
+        private static List<string> ParseDomainMembers(XmlNamespaceManager ns, XmlElement currentDefinitionLink, string domainNodeId)
+        {
+            var domainMembers = new List<string>();
+            var domainMemberNodes = currentDefinitionLink.SelectNodes($"link:definitionArc[@xlink:from='{domainNodeId}']", ns);
+            foreach (XmlElement domainMemberNode in domainMemberNodes)
+            {
+                if (domainMemberNode.GetAttribute("xbrldt:usable") == "false")
+                {
+                    Console.WriteLine("whoa, disallowed member");
+                }
+                else
+                {
+                    var memberNodeId = domainMemberNode.GetAttribute("xlink:to");
+                    var memberNode = (XmlElement)currentDefinitionLink.SelectSingleNode($"link:loc[@xlink:label='{memberNodeId}']", ns);
+                    // actually needs to be looked up from the location specified in href!!!
+                    var member = memberNode.GetAttribute("xlink:href").Split('#').Last();
+                    domainMembers.Add(member);
+                }
+            }
+
+            return domainMembers;
+        }
+
+        private static List<string> ParseMetrics(Dictionary<string, string> metricNames, XmlNamespaceManager ns, XmlElement definitionLink)
+        {
+            var metrics = new List<string>();
+            var metricNodes = definitionLink.SelectNodes("link:loc[contains(@xlink:href, 'met.xsd')]", ns);
+
+
+            foreach (XmlElement metricNode in metricNodes)
+            {
+                var metricId = metricNode.GetAttribute("xlink:href").Split('#').Last();
+                var metricName = metricNames[metricId];
+                metrics.Add(metricName);
+            }
+
+            return metrics;
         }
 
         public static Table ParseTable(string taxonomyPath, string code)
