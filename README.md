@@ -1,5 +1,10 @@
 # XbrlTable 
 Create table structure from XBRL taxonomy files
 
-# License
-LGPL 3.0
+### License:
+
+GNU Lesser General Public License v3.0
+
+http://www.gnu.org/licenses/gpl.txt
+
+http://www.gnu.org/licenses/lgpl.txt
