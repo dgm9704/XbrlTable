@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\XbrlTable\XbrlTable.csproj" />
+    <ProjectReference Include="..\Diwen.XbrlTable\Diwen.XbrlTable.csproj" />
   </ItemGroup>
   
 </Project>

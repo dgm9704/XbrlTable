@@ -1,4 +1,4 @@
-﻿namespace XbrlTable
+﻿namespace Diwen.XbrlTable
 {
     using System;
     using System.Collections.Generic;

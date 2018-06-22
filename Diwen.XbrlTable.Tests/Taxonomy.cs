@@ -1,4 +1,4 @@
-namespace XbrlTable.Tests
+namespace Diwen.XbrlTable.Tests
 {
     using Xunit;
     using XbrlTable;

@@ -1,4 +1,4 @@
-﻿namespace XbrlTable
+﻿namespace Diwen.XbrlTable
 {
 	public enum Direction
 	{
